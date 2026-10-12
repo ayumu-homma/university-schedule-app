@@ -34,6 +34,8 @@ import '../features/notification/presentation/notification_target_detail_screen.
 import '../features/onboarding/application/onboarding_providers.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/spatial_week/application/spatial_week_flag.dart';
+import '../features/spatial_week/presentation/spatial_week_screen.dart';
 import '../features/term_period/presentation/term_period_management_screen.dart';
 import '../features/today/presentation/today_screen.dart';
 import '../features/timetable/presentation/home_screen.dart';
@@ -76,6 +78,7 @@ final onboardingGateProvider = Provider<AsyncValue<OnboardingGateStatus>>((
 
 final routerProvider = Provider<GoRouter>((ref) {
   final config = ref.watch(appConfigProvider);
+  final spatialWeekEnabled = ref.watch(spatialWeekEnabledProvider);
   final normalizer = DeepLinkNormalizer(config);
   final pendingLinks = ref.watch(pendingDeepLinkStoreProvider);
   final refreshNotifier = _RouterRefreshNotifier();
@@ -87,6 +90,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      if (!spatialWeekEnabled && state.uri.path == '/spatial-week') {
+        return '/timetable';
+      }
       final auth = ref.read(authStateProvider);
       final onboarding = ref.read(onboardingGateProvider);
       final authStatus = auth.isLoading
@@ -134,6 +140,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 final List<RouteBase> _routes = [
   GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
   GoRoute(path: '/today', builder: (context, state) => const TodayScreen()),
+  GoRoute(
+    path: '/spatial-week',
+    builder: (context, state) => const SpatialWeekScreen(),
+  ),
   GoRoute(
     path: '/auth-loading',
     builder: (context, state) => const _AuthLoadingScreen(),

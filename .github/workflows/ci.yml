@@ -68,7 +68,7 @@ jobs:
         working-directory: apps/mobile
         run: >-
           dart format --output=none --set-exit-if-changed
-          lib test tool_tests integration_test
+          lib test tool_tests integration_test test_driver
 
       - name: Mobile analyze
         working-directory: apps/mobile
@@ -105,6 +105,7 @@ jobs:
           test/notification_settings_screen_test.dart
           test/document_import_chat_screen_test.dart
           test/unsaved_changes_guard_test.dart
+          tool_tests/spatial_frame_metrics_test.dart
 
       - name: Android staging debug APK
         working-directory: apps/mobile

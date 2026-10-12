@@ -1,0 +1,277 @@
+{
+  "schema": "spatial-week-diagnostics-v2-frame-identity",
+  "build_mode": "profile",
+  "dataset": "isolated in-memory Drift demo + one personal event",
+  "fixed_now_utc": "2026-06-29T00:00:00.000Z",
+  "context": "synthetic demo current term and personal calendar",
+  "week_start_utc": "2026-06-28T15:00:00.000Z",
+  "entry_count": 5,
+  "screen_logical_size": {
+    "width": 411.42857142857144,
+    "height": 914.2857142857143
+  },
+  "limitations": "Warmed same-list/detail journeys, with mode setup outside each window. First viewer entry follows fixture setup, not cold process launch. No geometric lookup, physical FPS, peak/leak proof, human usability or TalkBack E2E.",
+  "windows": [
+    {
+      "label": "first_entry_separate",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 5,
+      "scenario_elapsed_ms": 282.173,
+      "window_start_frame_number": 119,
+      "window_end_frame_number": 131,
+      "window_start_presentation_us": 68222896,
+      "window_end_presentation_us": 68506229,
+      "build_ms": {
+        "mean": 16.6404,
+        "p90_nearest_rank": 53.557,
+        "max": 53.557
+      },
+      "raster_ms": {
+        "mean": 42.6672,
+        "p90_nearest_rank": 135.523,
+        "max": 135.523
+      },
+      "total_span_ms": {
+        "mean": 88.1886,
+        "p90_nearest_rank": 192.151,
+        "max": 192.151
+      }
+    },
+    {
+      "label": "trial_1_2d",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 600.346,
+      "window_start_frame_number": 304,
+      "window_end_frame_number": 340,
+      "window_start_presentation_us": 75606229,
+      "window_end_presentation_us": 76206229,
+      "build_ms": {
+        "mean": 1.0359166666666664,
+        "p90_nearest_rank": 3.014,
+        "max": 10.02
+      },
+      "raster_ms": {
+        "mean": 11.715861111111114,
+        "p90_nearest_rank": 17.108,
+        "max": 17.444
+      },
+      "total_span_ms": {
+        "mean": 15.496916666666667,
+        "p90_nearest_rank": 20.883,
+        "max": 21.261
+      }
+    },
+    {
+      "label": "trial_1_spatial",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 600.489,
+      "window_start_frame_number": 377,
+      "window_end_frame_number": 413,
+      "window_start_presentation_us": 80922895,
+      "window_end_presentation_us": 81522895,
+      "build_ms": {
+        "mean": 0.9552777777777778,
+        "p90_nearest_rank": 2.871,
+        "max": 6.697
+      },
+      "raster_ms": {
+        "mean": 10.14166666666667,
+        "p90_nearest_rank": 16.042,
+        "max": 17.687
+      },
+      "total_span_ms": {
+        "mean": 13.688138888888892,
+        "p90_nearest_rank": 20.107,
+        "max": 21.237
+      }
+    },
+    {
+      "label": "trial_2_spatial",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 600.575,
+      "window_start_frame_number": 450,
+      "window_end_frame_number": 486,
+      "window_start_presentation_us": 86239562,
+      "window_end_presentation_us": 86839561,
+      "build_ms": {
+        "mean": 1.0045833333333334,
+        "p90_nearest_rank": 2.786,
+        "max": 8.566
+      },
+      "raster_ms": {
+        "mean": 12.313666666666668,
+        "p90_nearest_rank": 16.793,
+        "max": 18.822
+      },
+      "total_span_ms": {
+        "mean": 16.083166666666667,
+        "p90_nearest_rank": 20.632,
+        "max": 22.336
+      }
+    },
+    {
+      "label": "trial_2_2d",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 599.892,
+      "window_start_frame_number": 523,
+      "window_end_frame_number": 559,
+      "window_start_presentation_us": 91556228,
+      "window_end_presentation_us": 92156228,
+      "build_ms": {
+        "mean": 0.8714722222222222,
+        "p90_nearest_rank": 2.078,
+        "max": 6.526
+      },
+      "raster_ms": {
+        "mean": 9.11013888888889,
+        "p90_nearest_rank": 10.338,
+        "max": 12.071
+      },
+      "total_span_ms": {
+        "mean": 11.889833333333332,
+        "p90_nearest_rank": 13.585,
+        "max": 15.935
+      }
+    },
+    {
+      "label": "trial_3_2d",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 600.379,
+      "window_start_frame_number": 596,
+      "window_end_frame_number": 632,
+      "window_start_presentation_us": 96872894,
+      "window_end_presentation_us": 97472894,
+      "build_ms": {
+        "mean": 0.8528611111111111,
+        "p90_nearest_rank": 2.184,
+        "max": 6.71
+      },
+      "raster_ms": {
+        "mean": 11.86886111111111,
+        "p90_nearest_rank": 16.369,
+        "max": 18.208
+      },
+      "total_span_ms": {
+        "mean": 15.100333333333332,
+        "p90_nearest_rank": 20.175,
+        "max": 21.314
+      }
+    },
+    {
+      "label": "trial_3_spatial",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 36,
+      "scenario_elapsed_ms": 599.326,
+      "window_start_frame_number": 669,
+      "window_end_frame_number": 705,
+      "window_start_presentation_us": 102189561,
+      "window_end_presentation_us": 102789561,
+      "build_ms": {
+        "mean": 1.0281944444444442,
+        "p90_nearest_rank": 2.996,
+        "max": 7.537
+      },
+      "raster_ms": {
+        "mean": 9.20180555555556,
+        "p90_nearest_rank": 10.718,
+        "max": 11.362
+      },
+      "total_span_ms": {
+        "mean": 12.30947222222222,
+        "p90_nearest_rank": 13.538,
+        "max": 16.625
+      }
+    },
+    {
+      "label": "spatial_orbit_zoom_separate",
+      "status": "MEASURED",
+      "window_membership": "startFrameNumber < frameNumber <= endFrameNumber",
+      "sample_count": 19,
+      "scenario_elapsed_ms": 335.303,
+      "window_start_frame_number": 742,
+      "window_end_frame_number": 762,
+      "window_start_presentation_us": 107506227,
+      "window_end_presentation_us": 107839561,
+      "build_ms": {
+        "mean": 3.1718947368421055,
+        "p90_nearest_rank": 6.602,
+        "max": 10.08
+      },
+      "raster_ms": {
+        "mean": 15.371526315789472,
+        "p90_nearest_rank": 20.792,
+        "max": 21.727
+      },
+      "total_span_ms": {
+        "mean": 24.262736842105262,
+        "p90_nearest_rank": 37.408,
+        "max": 38.188
+      }
+    }
+  ],
+  "measurement_started_utc": "2026-10-12T17:05:15.236531+00:00",
+  "measurement_ended_utc": "2026-10-12T17:06:03.182101+00:00",
+  "measured_code_input_sha256": "99b7a4520c4b1b46157942db6da0fa71d04d9aa618891114ad2970b8f61248c1",
+  "environment": {
+    "flutter": "3.44.4",
+    "dart": "3.12.2",
+    "android": "API36 x86_64 dedicated Pixel7 AVD",
+    "graphics": "emulator SwiftShader; observed Impeller OpenGLES",
+    "pixels": [
+      1080,
+      2400
+    ],
+    "density": 420,
+    "orientation": "portrait",
+    "font_scale": 1,
+    "theme": "light",
+    "android_animation_scales": [
+      0,
+      0,
+      0
+    ],
+    "warmup": "one common journey per mode",
+    "trial_order": [
+      "2d then spatial",
+      "spatial then 2d",
+      "2d then spatial"
+    ]
+  },
+  "pss_separate_debug_observations": {
+    "unit": "KiB",
+    "fixed_wait_seconds": 5,
+    "conditions": "same debug opt-in APK and process; retained synthetic October week; separate from profile June dataset",
+    "snapshots": [
+      {
+        "stage": "normal-before",
+        "utc": "2026-10-12T16:26:11.773302+00:00",
+        "total_pss_kib": 418517
+      },
+      {
+        "stage": "spatial-on",
+        "utc": "2026-10-12T16:26:40.518245+00:00",
+        "total_pss_kib": 426952
+      },
+      {
+        "stage": "normal-after",
+        "utc": "2026-10-12T16:26:58.810446+00:00",
+        "total_pss_kib": 433869
+      }
+    ],
+    "limits": "Three history-dependent snapshots do not establish causal renderer cost, peak or absence of leaks"
+  },
+  "scenario_duration_limit": "Elapsed time is paced by Flutter test pumps; it is not user lookup time or application latency.",
+  "adoption": "3D_EXPERIMENTAL; default disabled; no consistent benefit established; no stable v1.2 release"
+}

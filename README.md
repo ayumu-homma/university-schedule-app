@@ -4,6 +4,8 @@
 
 **v1.1.0 — Academic UI / Source Release。** Today・時間割・課題とテストの導線を改善した、ソースと再現可能なローカルデモの公開版です。本番サービスやストア配信の完了を意味しません。公開履歴はv1.0から管理し、v1.0.0タグとReleaseを保全しています。
 
+**Spatial Week is an optional source experiment**, with an interactive geometric 2.5D view of the same personal week. It uses existing data and has a complete list fallback. It is hidden in normal builds (`APP_ENABLE_SPATIAL_WEEK=false`); the package remains `1.1.0+2`, and this is not a v1.2 release. The source branch is `codex/v1.2-spatial-week`. Synthetic Android operation and emulator frame/PSS diagnostics are recorded; they establish no consistent performance or student usability advantage. iOS/physical-device acceptance remains separate. See the [experiment record](docs/SPATIAL_WEEK_EXPERIMENT.md) and [acceptance evidence](docs/TESTING.md#spatial-week-25d-source-experiment).
+
 - 時間割を週・日表示で確認し、授業から課題や試験へ進めます。
 - Todayの次の授業・教室・締切から、授業の完全な詳細や課題とテストへ進めます。
 - 課題の締切と提出状態、試験、繰り返し予定と一回だけの例外を管理します。
