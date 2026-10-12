@@ -7,6 +7,7 @@ import 'package:shared_domain/shared_domain.dart';
 
 import '../../../app/theme/app_tokens.dart';
 import '../../../core/time/app_clock.dart';
+import '../../../shared/widgets/academic_mode_switch.dart';
 import '../../../shared/widgets/app_status_badge.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/mvp_scaffold.dart';
@@ -15,6 +16,7 @@ import '../../../shared/widgets/section_header.dart';
 import '../application/assignment_undo.dart';
 import 'assignment_undo_feedback.dart';
 import '../../timetable/application/demo_app_controller.dart';
+import '../../timetable/data/local_schedule_repository.dart';
 
 enum AssignmentListFilter { open, today, week, done }
 
@@ -76,6 +78,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
     if (_updatingAssignmentIds.contains(assignment.id)) return;
     final controller = ref.read(demoAppControllerProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
+    final feedbackContext = ref.read(activeScheduleContextProvider);
     setState(() => _updatingAssignmentIds.add(assignment.id));
 
     try {
@@ -92,7 +95,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
         AssignmentStatus.notStarted => '「${assignment.title}」を未着手に戻しました。',
         AssignmentStatus.overdue => '',
       };
-      if (message.isNotEmpty) {
+      if (message.isNotEmpty && _canShowFeedback(messenger, feedbackContext)) {
         messenger
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -115,18 +118,133 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
           );
       }
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('提出状態を更新できませんでした。もう一度お試しください。'),
-          ),
-        );
+      if (_canShowFeedback(messenger, feedbackContext)) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('提出状態を更新できませんでした。もう一度お試しください。'),
+            ),
+          );
+      }
     } finally {
       if (mounted) {
         setState(() => _updatingAssignmentIds.remove(assignment.id));
       }
     }
+  }
+
+  bool _canShowFeedback(
+    ScaffoldMessengerState messenger,
+    ActiveScheduleContext? feedbackContext,
+  ) {
+    if (!mounted || !messenger.mounted) return false;
+    return _sameScheduleContext(
+      ref.read(activeScheduleContextProvider),
+      feedbackContext,
+    );
+  }
+}
+
+bool _sameScheduleContext(
+  ActiveScheduleContext? active,
+  ActiveScheduleContext? captured,
+) {
+  if (active == null || captured == null) {
+    return active == null && captured == null;
+  }
+  return active.ownerUserId == captured.ownerUserId &&
+      active.universityId == captured.universityId &&
+      active.termId == captured.termId &&
+      active.academicYear == captured.academicYear &&
+      active.primaryCalendarId == captured.primaryCalendarId;
+}
+
+class _AssignmentAttention {
+  const _AssignmentAttention({
+    required this.open,
+    required this.overdue,
+    required this.today,
+  });
+
+  factory _AssignmentAttention.fromState({
+    required DemoAppState state,
+    required DateTime now,
+    required AssignmentStatusResolver statusResolver,
+  }) {
+    final civilNow = JapanTime.civil(now).pickerDateTime;
+    var open = 0;
+    var overdue = 0;
+    var today = 0;
+    for (final assignment in state.assignments) {
+      final effectiveStatus = statusResolver.effectiveStatus(
+        assignment: assignment,
+        state: state.assignmentStates[assignment.id],
+        now: now,
+      );
+      if (effectiveStatus == AssignmentStatus.submitted) continue;
+      open += 1;
+      if (effectiveStatus == AssignmentStatus.overdue) overdue += 1;
+      if (_isSameDate(
+        JapanTime.civil(assignment.dueAt).pickerDateTime,
+        civilNow,
+      )) {
+        today += 1;
+      }
+    }
+    return _AssignmentAttention(open: open, overdue: overdue, today: today);
+  }
+
+  final int open;
+  final int overdue;
+  final int today;
+}
+
+class _AssignmentAttentionSummary extends StatelessWidget {
+  const _AssignmentAttentionSummary({
+    required this.attention,
+    required this.onAction,
+  });
+
+  final _AssignmentAttention attention;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final actionLabel = attention.today > 0
+        ? '今日を見る'
+        : attention.open > 0
+            ? '未提出を見る'
+            : '課題を追加';
+    return Card(
+      color: colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Semantics(
+                label: '締切の確認。未提出 ${attention.open}件、'
+                    '期限切れ ${attention.overdue}件、今日締切 ${attention.today}件',
+                child: Text(
+                  '未提出 ${attention.open}件 · '
+                  '期限切れ ${attention.overdue}件 · '
+                  '今日 ${attention.today}件',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            TextButton(
+              onPressed: onAction,
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -190,10 +308,13 @@ class _AssignmentListContent extends StatelessWidget {
         )
         .toList()
       ..sort((left, right) => left.dueAt.compareTo(right.dueAt));
-    final exams = [...state.exams]
-      ..sort((left, right) => left.startAt.compareTo(right.startAt));
     final assignmentGroups = _groupAssignments(
       assignments,
+      statusResolver: statusResolver,
+    );
+    final attention = _AssignmentAttention.fromState(
+      state: state,
+      now: now,
       statusResolver: statusResolver,
     );
 
@@ -206,16 +327,35 @@ class _AssignmentListContent extends StatelessWidget {
           onPressed: () => context.go('/assignments/new'),
           icon: const Icon(Icons.add),
         ),
-        IconButton(
-          tooltip: 'テスト一覧',
-          onPressed: () => context.go('/exams'),
-          icon: const Icon(Icons.quiz_outlined),
-        ),
       ],
       child: ResponsiveContent(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
+            AcademicModeSwitch(
+              selected: AcademicMode.assignments,
+              assignmentCount: state.assignments.length,
+              examCount: state.exams.length,
+              onSelected: (mode) {
+                if (mode == AcademicMode.exams) context.go('/exams');
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _AssignmentAttentionSummary(
+              attention: attention,
+              onAction: attention.open == 0
+                  ? () => context.go('/assignments/new')
+                  : () {
+                      onCourseFilterChanged(
+                          const _AssignmentCourseFilter.all());
+                      onFilterChanged(
+                        attention.today > 0
+                            ? AssignmentListFilter.today
+                            : AssignmentListFilter.open,
+                      );
+                    },
+            ),
+            const SizedBox(height: AppSpacing.sm),
             Semantics(
               container: true,
               label: '課題の表示期間',
@@ -245,7 +385,7 @@ class _AssignmentListContent extends StatelessWidget {
               hasDeletedCourse: hasDeletedCourse,
               onChanged: onCourseFilterChanged,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
             if (assignments.isEmpty)
               _AssignmentEmptyState(filter: filter)
             else
@@ -277,34 +417,6 @@ class _AssignmentListContent extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                 ],
                 const SizedBox(height: AppSpacing.md),
-              ],
-            const SizedBox(height: AppSpacing.xs),
-            AppSectionHeader(
-              title: 'テスト',
-              icon: Icons.quiz_outlined,
-              count: exams.length,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            if (exams.isEmpty)
-              Text(
-                '登録されたテストはありません。',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              )
-            else
-              for (final exam in exams) ...[
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.quiz_outlined),
-                    title: Text(exam.title),
-                    subtitle: Text(_examDateLabel(exam.startAt)),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.go('/exam/${exam.id}/edit'),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
               ],
             const SizedBox(height: AppSpacing.xxl),
           ],
@@ -604,21 +716,17 @@ class _AssignmentTile extends StatelessWidget {
                   ),
                 ),
                 if (!submitted)
-                  Semantics(
-                    button: true,
-                    label: '提出済みを記録',
-                    child: OutlinedButton.icon(
-                      onPressed: isUpdating
-                          ? null
-                          : () => onStatusChanged(AssignmentStatus.submitted),
-                      icon: isUpdating
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.upload_file, size: 18),
-                      label: Text(isUpdating ? '更新中' : '提出済みを記録'),
-                    ),
+                  OutlinedButton.icon(
+                    onPressed: isUpdating
+                        ? null
+                        : () => onStatusChanged(AssignmentStatus.submitted),
+                    icon: isUpdating
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.upload_file, size: 18),
+                    label: Text(isUpdating ? '更新中' : '提出済みを記録'),
                   ),
                 TextButton.icon(
                   onPressed: onDetail,
@@ -800,12 +908,6 @@ String _statusLabel(AssignmentStatus status) {
     AssignmentStatus.submitted => '提出済み',
     AssignmentStatus.overdue => '期限切れ',
   };
-}
-
-String _examDateLabel(DateTime startAt) {
-  final civil = JapanTime.civil(startAt);
-  return '${civil.month}/${civil.day} '
-      '${civil.hour}:${civil.minute.toString().padLeft(2, '0')}';
 }
 
 String _dueLabel(DateTime dueAt, DateTime current, {bool submitted = false}) {

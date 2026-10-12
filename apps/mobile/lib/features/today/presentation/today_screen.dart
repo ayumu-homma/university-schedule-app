@@ -6,13 +6,17 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_domain/shared_domain.dart';
 
 import '../../../core/time/app_clock.dart';
+import '../../../app/theme/app_tokens.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/mvp_scaffold.dart';
+import '../../../shared/widgets/responsive_content.dart';
 import '../../assignment/presentation/assignment_undo_feedback.dart';
 import '../../timetable/application/demo_app_controller.dart';
 import '../../timetable/data/local_schedule_repository.dart';
+import '../application/today_group_events_provider.dart';
 import '../application/today_briefing_provider.dart';
 import '../domain/today_briefing.dart';
+import 'today_at_a_glance.dart';
 import 'today_group_events_section.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
@@ -64,31 +68,37 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
       data: (value) => MvpScaffold(
         title: '今日',
         selectedIndex: 0,
-        child: _TodayBriefingContent(
-          briefing: value,
-          submittingAssignmentIds: _submittingAssignmentIds,
-          onSubmit: _submitAssignment,
+        child: ResponsiveContent(
+          child: _TodayBriefingContent(
+            briefing: value,
+            submittingAssignmentIds: _submittingAssignmentIds,
+            onSubmit: _submitAssignment,
+          ),
         ),
       ),
       loading: () => MvpScaffold(
         title: '今日',
         selectedIndex: 0,
-        child: Center(
-          child: Semantics(
-            liveRegion: true,
-            label: '今日の予定を読み込み中',
-            child: const CircularProgressIndicator(),
+        child: ResponsiveContent(
+          child: Center(
+            child: Semantics(
+              liveRegion: true,
+              label: '今日の予定を読み込み中',
+              child: const CircularProgressIndicator(),
+            ),
           ),
         ),
       ),
       error: (_, __) => const MvpScaffold(
         title: '今日',
         selectedIndex: 0,
-        child: EmptyState(
-          key: Key('today-load-error'),
-          icon: Icons.error_outline,
-          title: '今日の予定を読み込めませんでした',
-          message: '時間をおいてもう一度お試しください。',
+        child: ResponsiveContent(
+          child: EmptyState(
+            key: Key('today-load-error'),
+            icon: Icons.error_outline,
+            title: '今日の予定を読み込めませんでした',
+            message: '時間をおいてもう一度お試しください。',
+          ),
         ),
       ),
     );
@@ -131,7 +141,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
   }
 }
 
-class _TodayBriefingContent extends StatelessWidget {
+class _TodayBriefingContent extends ConsumerWidget {
   const _TodayBriefingContent({
     required this.briefing,
     required this.submittingAssignmentIds,
@@ -143,65 +153,77 @@ class _TodayBriefingContent extends StatelessWidget {
   final ValueChanged<TodayAssignmentItem> onSubmit;
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      key: const Key('today-briefing-list'),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-      children: [
-        Semantics(
-          header: true,
-          child: Text(
-            _dateLabel(briefing.generatedAt),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '個人予定は端末に保存された内容を表示し、グループ予定は接続時に読み込みます',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        _DeadlineSection(
-          dueToday: briefing.dueTodayAssignments,
-          overdue: briefing.overdueAssignments,
-          submittingAssignmentIds: submittingAssignmentIds,
-          onSubmit: onSubmit,
-        ),
-        _ProjectionSection(
-          title: '今日の授業',
-          icon: Icons.school_outlined,
-          items: briefing.courses,
-          emptyMessage: '今日の授業はありません',
-          highlightItem: briefing.currentCourse,
-        ),
-        _ProjectionSection(
-          title: '今日のテスト',
-          icon: Icons.quiz_outlined,
-          items: briefing.exams,
-          emptyMessage: '今日のテストはありません',
-        ),
-        _ProjectionSection(
-          title: '個人予定',
-          icon: Icons.event_outlined,
-          items: briefing.personalEvents,
-          emptyMessage: '今日の個人予定はありません',
-        ),
-        TodayGroupEventsSection(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupEvents = ref.watch(todayGroupEventsProvider);
+    final hasGroupEvents = groupEvents.valueOrNull == null ||
+        groupEventsInRange(
+          groupEvents.valueOrNull!,
           rangeStart: briefing.dayStart,
           rangeEnd: briefing.dayEnd,
+        ).isNotEmpty;
+    return ListView(
+      key: const Key('today-briefing-list'),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.xs,
+        AppSpacing.xs,
+        AppSpacing.xxl,
+      ),
+      children: [
+        TodayAtAGlance(briefing: briefing),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '個人の予定は端末から表示し、グループ予定は接続時に更新します。',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
-        _ProjectionSection(
-          title: 'ルーティン',
-          icon: Icons.repeat_outlined,
-          items: briefing.routines,
-          emptyMessage: '今日のルーティンはありません',
-        ),
+        if (briefing.dueTodayAssignments.isNotEmpty ||
+            briefing.overdueAssignments.isNotEmpty)
+          _DeadlineSection(
+            dueToday: briefing.dueTodayAssignments,
+            overdue: briefing.overdueAssignments,
+            submittingAssignmentIds: submittingAssignmentIds,
+            onSubmit: onSubmit,
+          ),
+        if (briefing.courses.isNotEmpty)
+          _ProjectionSection(
+            title: '今日の授業',
+            icon: Icons.school_outlined,
+            items: briefing.courses,
+            emptyMessage: '今日の授業はありません',
+            highlightItem: briefing.currentCourse,
+          ),
+        if (briefing.exams.isNotEmpty)
+          _ProjectionSection(
+            title: '今日のテスト',
+            icon: Icons.quiz_outlined,
+            items: briefing.exams,
+            emptyMessage: '今日のテストはありません',
+          ),
+        if (briefing.personalEvents.isNotEmpty)
+          _ProjectionSection(
+            title: '個人予定',
+            icon: Icons.event_outlined,
+            items: briefing.personalEvents,
+            emptyMessage: '今日の個人予定はありません',
+          ),
+        if (briefing.routines.isNotEmpty)
+          _ProjectionSection(
+            title: 'ルーティン',
+            icon: Icons.repeat_outlined,
+            items: briefing.routines,
+            emptyMessage: '今日のルーティンはありません',
+          ),
         if (briefing.otherCalendarOccurrences.isNotEmpty)
           _ProjectionSection(
             title: '共有予定',
             icon: Icons.groups_outlined,
             items: briefing.otherCalendarOccurrences,
             emptyMessage: '今日の共有予定はありません',
+          ),
+        if (groupEvents.isLoading || groupEvents.hasError || hasGroupEvents)
+          TodayGroupEventsSection(
+            rangeStart: briefing.dayStart,
+            rangeEnd: briefing.dayEnd,
           ),
       ],
     );
@@ -291,6 +313,7 @@ class _ProjectionSection extends StatelessWidget {
                   Card(
                     child: ListTile(
                       minVerticalPadding: 12,
+                      isThreeLine: item.kind == EventKind.course,
                       leading: item.kind == EventKind.course
                           ? _CourseTimeColumn(item: item)
                           : Icon(_itemIcon(item.kind)),
@@ -502,12 +525,6 @@ IconData _itemIcon(EventKind kind) => switch (kind) {
       EventKind.routine => Icons.repeat_outlined,
       EventKind.group => Icons.groups_outlined,
     };
-
-String _dateLabel(DateTime instant) {
-  final civil = JapanTime.civil(instant);
-  const weekdays = ['月', '火', '水', '木', '金', '土', '日'];
-  return '${civil.month}月${civil.day}日（${weekdays[civil.weekday - 1]}）';
-}
 
 String _dateTime(DateTime instant) {
   final civil = JapanTime.civil(instant);

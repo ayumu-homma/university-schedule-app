@@ -8,6 +8,7 @@ import 'package:university_schedule_mobile/features/timetable/application/demo_a
 import 'package:university_schedule_mobile/features/timetable/data/local_schedule_repository.dart';
 import 'package:university_schedule_mobile/features/timetable/presentation/home_screen.dart';
 import 'package:university_schedule_mobile/features/today/application/today_briefing_provider.dart';
+import 'package:university_schedule_mobile/features/today/domain/today_briefing.dart';
 import 'package:university_schedule_mobile/features/today/presentation/today_screen.dart';
 
 void main() {
@@ -60,12 +61,64 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('課題 1'), findsOneWidget);
+    expect(find.text('課題 1件'), findsOneWidget);
     await tester.tap(find.byKey(const Key('open-today-briefing')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('today-briefing-list')), findsOneWidget);
     expect(find.text('Homeにも出る課題'), findsOneWidget);
+  });
+
+  testWidgets('Homeの読み込み失敗は内部詳細を隠して再試行を案内する', (tester) async {
+    const internalDetail =
+        'postgres://admin:secret@internal.example/production';
+    final now = JapanTime.at(year: 2026, month: 8, day: 10, hour: 10);
+    final state = DemoAppState(
+      templates: const [],
+      periodSettings: const [],
+      courses: const [],
+      assignments: const [],
+      assignmentStates: const {},
+      exams: const [],
+      events: const [],
+      eventExceptions: const [],
+      calendarItems: const [],
+      widgetSnapshot: WidgetSnapshot.empty(now),
+      pendingMutations: const [],
+      syncQueueCounts: const SyncQueueCounts(pending: 0, synced: 0, failed: 0),
+    );
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
+        GoRoute(path: '/settings', builder: (_, __) => const Scaffold()),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeScheduleContextProvider.overrideWithValue(_context),
+          todayTimeProvider.overrideWith((ref) => Stream.value(now)),
+          todayBriefingProvider.overrideWithValue(
+            AsyncError<TodayBriefing>(
+              StateError(internalDetail),
+              StackTrace.fromString('internal frame $internalDetail'),
+            ),
+          ),
+          demoAppControllerProvider.overrideWith(
+            () => _HomeTestController(state),
+          ),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('今日の情報を読み込めませんでした。'), findsOneWidget);
+    expect(find.text('再試行'), findsOneWidget);
+    expect(find.textContaining(internalDetail), findsNothing);
+    expect(find.textContaining('StateError'), findsNothing);
   });
 }
 

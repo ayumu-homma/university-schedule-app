@@ -2,9 +2,10 @@
 
 大学生向けに、時間割・課題・試験・予定・共有をまとめて管理するFlutterアプリです。
 
-**v1.0.0 — Portfolio / Source Release。** ソースと再現可能なローカルデモの公開版です。本番サービスやストア配信の完了を意味しません。公開履歴はv1.0から管理しています。
+**v1.1.0 — Academic UI / Source Release。** Today・時間割・課題とテストの導線を改善した、ソースと再現可能なローカルデモの公開版です。本番サービスやストア配信の完了を意味しません。公開履歴はv1.0から管理し、v1.0.0タグとReleaseを保全しています。
 
 - 時間割を週・日表示で確認し、授業から課題や試験へ進めます。
+- Todayの次の授業・教室・締切から、授業の完全な詳細や課題とテストへ進めます。
 - 課題の締切と提出状態、試験、繰り返し予定と一回だけの例外を管理します。
 - Driftに保存し、送信待ちの変更・再送・競合をSupabaseとの同期として処理します。
 - 友だち・グループへの共有をPRIVATE / BUSY_ONLY / TITLE_ONLY / FULLで制御します。許可されない詳細はRPC側で返しません。
@@ -13,18 +14,18 @@
 
 ## 実画面
 
-<p align="center"><img src="docs/assets/screenshots/02-timetable.png" width="360" alt="架空のデモ時間割：週表示、科目、教室、授業時間" /></p>
+<p align="center"><img src="docs/assets/screenshots/v1.1/after-timetable-day.png" width="360" alt="v1.1の架空デモ時間割：科目、教室、時限と授業時間" /></p>
 
 <p align="center">
-<img src="docs/assets/screenshots/01-today.png" width="230" alt="架空のデータを使うToday画面" />
-<img src="docs/assets/screenshots/03-assignments.png" width="230" alt="課題の締切と提出状態" />
+<img src="docs/assets/screenshots/v1.1/after-today.png" width="230" alt="v1.1の架空データを使うToday概要と締切" />
+<img src="docs/assets/screenshots/v1.1/after-assignments.png" width="230" alt="v1.1の課題とテストの切替、締切と提出状態" />
 </p>
 <p align="center">
 <img src="docs/assets/screenshots/06-document-upload.png" width="230" alt="資料候補の取り込みデモの入口" />
 <img src="docs/assets/screenshots/07-document-candidates.png" width="230" alt="合成抽出候補を確認して登録する画面" />
 </p>
 
-Androidエミュレーターの実画面です。架空データを使用し、資料抽出はdeterministic fake adapterです。実AIや本番接続の実績ではありません。[撮影の由来と制約](docs/assets/README.md)
+Androidエミュレーターの実画面です。架空データを使用し、資料抽出はdeterministic fake adapterです。実AIや本番接続の実績ではありません。[before/afterと操作](docs/UX_ACCEPTANCE_V1_1.md)、[撮影の由来と制約](docs/assets/README.md)
 
 ## 最短のローカルデモ
 
@@ -56,6 +57,7 @@ Android接続E2E、物理Android/OEM、iOS/macOS、ホスト型Auth/SMTP/OAuth�
 
 - [アーキテクチャ](docs/ARCHITECTURE.md)：ローカル保存、outbox、アカウント境界、公開範囲の投影。
 - [要件とソース](docs/MVP_TRACEABILITY.md)：実装・テスト・外部受入の対応。
+- [UX調査](docs/UX_RESEARCH_V1_1.md)、[デザインシステム](docs/UX_DESIGN_SYSTEM.md)、[編集可能な独自ワイヤーフレーム](docs/ux/wireframes.svg)。
 - [セットアップ](docs/SETUP.md)：依存取得、生成、デモ、管理画面。
 - [API](docs/API.md)、[セキュリティ](docs/SECURITY.md)、[公開前確認](docs/PUBLIC_RELEASE_CHECK.md)。
 - [CHANGELOG](CHANGELOG.md)、[ROADMAP](ROADMAP.md)。
@@ -72,4 +74,4 @@ scripts/                 検証と手動受入の入口
 
 ポートフォリオとしてソース公開。**オープンソースライセンスは未付与**です。GitHub規約に基づく閲覧・forkとOSS再利用許諾は区別します。[第三者のライセンス・権利表示](THIRD_PARTY_NOTICES.md)は維持しています。大学公認や実ユーザー運用実績を主張していません。
 
-要求・優先順位・仕様判断を利用者が提示し、Codexが実装・テスト・調査・文書整備を支援しています。内部会話・実行ログ・個人用設定は公開資料に含めません。次の開発では、実ユーザー検証を通じたUI/UX改善と必要性を検証した3D表現を検討します。
+要求・優先順位・仕様判断を利用者が提示し、Codexが実装・テスト・調査・文書整備を支援しています。内部会話・実行ログ・個人用設定は公開資料に含めません。v1.1のUX設計は公式資料の比較と既存コードに基づくもので、実ユーザー調査ではありません。3D表現は2Dとの比較実験で必要性を判断します。

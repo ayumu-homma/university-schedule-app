@@ -31,18 +31,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('8月10日（月）'), findsOneWidget);
+    final scrollable = find.descendant(
+      of: find.byKey(const Key('today-briefing-list')),
+      matching: find.byType(Scrollable),
+    );
+    final currentCourseFinder = find.byKey(const Key('today-current-course'));
+    await tester.scrollUntilVisible(
+      currentCourseFinder,
+      300,
+      scrollable: scrollable,
+    );
     expect(find.text('現在の授業'), findsWidgets);
     final currentCourse = tester.widget<Text>(
-      find.byKey(const Key('today-current-course')),
+      currentCourseFinder,
     );
     final courseContext = tester.element(
-      find.byKey(const Key('today-current-course')),
+      currentCourseFinder,
     );
     expect(
       currentCourse.style?.color,
       Theme.of(courseContext).colorScheme.onPrimaryContainer,
     );
-    final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       find.text('今日の課題'),
       300,

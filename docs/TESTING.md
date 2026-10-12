@@ -1,8 +1,25 @@
 # 検証範囲と再現手順
 
-2026-10-12の公開用クリーンコピーを対象にした検証です。公開の対象はv1.0.0タグとそのCIで特定します。各テストの生ログ、入力hash、時刻、終了コードは非公開で保全し、ここには安全な要約を掲載します。
+2026-10-12の公開用クリーンコピーを対象にした検証です。版ごとにタグとCIでソースを特定します。各テストの生ログ、入力hash、時刻、終了コードは非公開で保全し、ここには安全な要約を掲載します。
 
-## 今回の必須と結果
+## v1.1 Academic UIの検証
+
+Today・時間割・課題とテスト、共通テーマとナビゲーションを変更しています。[デザイン](UX_DESIGN_SYSTEM.md)と[公式資料のUX調査](UX_RESEARCH_V1_1.md)を参照してください。v1.0の成功を変更後の成功として数えていません。
+
+- PASS：Flutter 3.44.4 / Dart 3.12.2、lockfile準拠の依存取得、Drift生成、全体format、fatal infos/warnings付き全体analyze。
+- PASS：最終修正後の通常Flutter140ファイル、849成功・3スキップ。スキップは以下のv1.0と同じ未配布fixture条件です。24件の接続fixtureファイルは別スイートを維持しています。修正前843・847成功の記録とは区別しています。
+- PASS：実際のRiverpod controller・Drift一時DB・画面を使うHome→Today→時間割→授業詳細→課題提出→Undo→試験→Homeのwidget統合。提出状態とoutboxのsubmit/updateを確認。ホスト型Authや端末E2Eとは別です。
+- PASS：主要画面の360/412dp、タブレット幅、横向き、200%日本語、明暗テーマ、キーボード、安全領域、48dp操作領域、semantics、reduced motion。各テストでMediaQueryのサイズも実際の描画サイズに合わせています。週の省略表示はタップ後に全文を確認します。
+- PASS：時間割の選択・管理シートからアカウント文脈が消えた際の即時非表示と操作停止、時刻未設定、曜日で異なる時刻の正確な表示、全体の締切件数からの課題フィルタ解除。独立した読取専用レビューの指摘を修正し、再レビューしました。
+- PASS：課題・テストの各モードは件数の意味・選択状態・有効な読み上げ操作を持つ1ノード。提出ボタンの読み上げからの1回だけの呼出しと更新中の無効状態を検証。root messengerを保った画面遷移、および画面Stateを保ったアカウント・学期等の文脈変更後に、遅延した成功・失敗の通知を表示しない回帰も含みます。
+- PASS：shared_domain91テスト、format/analyze。Android staging local/demo APK（1.1.0+2）をローカルで生成。公開予定差分のGitleaks、相対リンク・版・公開ファイル検査、actionlint。
+
+- PASS：Android JVM/Robolectricは13 XML suite・68成功、failure/error/skip0。専用API36 x86_64 AVD（Pixel7、SwiftShader、debug）をv1.0から更新し、起動前の合成DB関連4ファイルが同じ内容で保持されることを確認。Home/Today、日・週、全文選択、授業詳細、課題の提出・Undo、試験への往復と、オフライン再起動後の復元を確認しました。最終の文脈ガードを含むAPKでも提出・Undoと、各モード・提出ボタンが1つの有効な読み上げノードになることを再確認しています。
+- PASS：AVDの200%文字・ダーク・横向きで、スクロールして授業・選択の全文と詳細操作へ到達。合成before/after画像は[比較資料](UX_ACCEPTANCE_V1_1.md)へ保存し、内容とメタデータを監査しました。描画を変更しない後続の非同期ガードと、画像で確認するレイアウトの証拠は分けています。
+
+公開commitに対応するfresh CIは[Actions](https://github.com/ayumu-homma/university-schedule-app/actions)を正本にします。ローカルDocker engine停止のためSQLは新規CI環境で検証します。以下のv1.0の端末・CI結果をv1.1受入へ代用しません。実ユーザーの比較調査、物理端末profileによる性能改善、TalkBackの実機操作は未測定です。
+
+## v1.0.0の必須と結果（保全した基準）
 
 実行前に必須と別途検証を分類しました。依存取得・生成、静的解析・format、通常Flutter unit/widget、共通domain、Android local/demo buildと可能なJVM/起動、管理画面lint/test/build、Edge、使い捨て環境のSQL/権限、安全監査を必須としています。
 

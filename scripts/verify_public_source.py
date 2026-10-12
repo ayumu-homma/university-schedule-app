@@ -31,7 +31,9 @@ for name in files:
                 target = unquote(target.strip('<>').split('#')[0].split('?')[0])
                 if target and not (p.parent / target).exists():
                     errors.append(f'Broken local link: {name} -> {target}')
-if 'version: 1.0.0+1' not in (root / 'apps/mobile/pubspec.yaml').read_text():
+release_version = (root / 'VERSION').read_text(encoding='utf-8').strip()
+mobile_version = re.search(r'^version: (\d+\.\d+\.\d+)\+([1-9]\d*)$', (root / 'apps/mobile/pubspec.yaml').read_text(), re.MULTILINE)
+if not re.fullmatch(r'\d+\.\d+\.\d+', release_version) or not mobile_version or mobile_version.group(1) != release_version:
     errors.append('Mobile release version is inconsistent')
 if errors:
     print('\n'.join(errors), file=sys.stderr)

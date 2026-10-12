@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_domain/shared_domain.dart';
 
+import '../../../app/theme/app_tokens.dart';
 import '../domain/today_briefing.dart';
 
 class TodaySummaryCard extends StatelessWidget {
@@ -17,66 +19,71 @@ class TodaySummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final current = briefing.currentCourse;
     final next = briefing.nextCourse;
+    final focusCourse = current ?? next;
+    final assignmentCount = briefing.dueTodayAssignments.length +
+        briefing.overdueAssignments.length;
+    final eventCount = briefing.personalEvents.length +
+        briefing.routines.length +
+        briefing.otherCalendarOccurrences.length;
     return Card(
-      child: InkWell(
-        key: const Key('open-today-briefing'),
-        onTap: onOpen,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.today_outlined),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Semantics(
-                      header: true,
-                      child: Text(
-                        '今日の予定',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right),
-                ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                key: const Key('open-today-briefing'),
+                onPressed: onOpen,
+                icon: const Icon(Icons.today_outlined),
+                label: const Text('今日の予定を見る'),
               ),
-              const SizedBox(height: 12),
-              if (current != null)
-                Text('授業中: ${current.title}（${_time(current.endAt)}まで）')
-              else if (next != null)
-                Text('次の授業: ${_time(next.startAt)} ${next.title}')
-              else
-                const Text('このあとの授業はありません'),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _CountLabel(
-                    icon: Icons.school_outlined,
-                    label: '授業 ${briefing.courses.length}',
-                  ),
-                  _CountLabel(
-                    icon: Icons.assignment_late_outlined,
-                    label:
-                        '課題 ${briefing.dueTodayAssignments.length + briefing.overdueAssignments.length}',
-                  ),
-                  _CountLabel(
-                    icon: Icons.quiz_outlined,
-                    label: 'テスト ${briefing.exams.length}',
-                  ),
-                  _CountLabel(
-                    icon: Icons.event_outlined,
-                    label:
-                        '予定 ${briefing.personalEvents.length + briefing.routines.length + briefing.otherCalendarOccurrences.length}',
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            if (focusCourse != null)
+              OutlinedButton.icon(
+                key: const Key('home-focus-course'),
+                onPressed: () => context.go('/course/${focusCourse.sourceId}'),
+                icon: const Icon(Icons.school_outlined),
+                label: Text(
+                  '${current == null ? '次の授業' : '現在の授業'} ${_time(focusCourse.startAt)}〜${_time(focusCourse.endAt)}・${focusCourse.location?.trim().isNotEmpty == true ? focusCourse.location!.trim() : '教室未設定'}\n${focusCourse.title}',
+                ),
+              )
+            else
+              const Text('このあとの授業はありません'),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                _CountLabel(
+                  key: const Key('home-count-courses'),
+                  icon: Icons.school_outlined,
+                  label: '授業 ${briefing.courses.length}件',
+                  route: '/timetable',
+                ),
+                _CountLabel(
+                  key: const Key('home-count-assignments'),
+                  icon: Icons.assignment_late_outlined,
+                  label: '課題 $assignmentCount件',
+                  route: '/assignments',
+                ),
+                _CountLabel(
+                  key: const Key('home-count-exams'),
+                  icon: Icons.quiz_outlined,
+                  label: 'テスト ${briefing.exams.length}件',
+                  route: '/exams',
+                ),
+                _CountLabel(
+                  key: const Key('home-count-events'),
+                  icon: Icons.event_outlined,
+                  label: '予定 $eventCount件',
+                  route: '/calendar',
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -90,16 +97,21 @@ class TodaySummaryCard extends StatelessWidget {
 }
 
 class _CountLabel extends StatelessWidget {
-  const _CountLabel({required this.icon, required this.label});
+  const _CountLabel({
+    required super.key,
+    required this.icon,
+    required this.label,
+    required this.route,
+  });
 
   final IconData icon;
   final String label;
+  final String route;
 
   @override
-  Widget build(BuildContext context) {
-    return Chip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-    );
-  }
+  Widget build(BuildContext context) => OutlinedButton.icon(
+        onPressed: () => context.go(route),
+        icon: Icon(icon, size: 18),
+        label: Text(label),
+      );
 }

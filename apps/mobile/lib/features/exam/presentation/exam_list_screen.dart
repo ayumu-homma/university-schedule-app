@@ -5,6 +5,7 @@ import 'package:shared_domain/shared_domain.dart';
 
 import '../../../app/theme/app_tokens.dart';
 import '../../../core/time/app_clock.dart';
+import '../../../shared/widgets/academic_mode_switch.dart';
 import '../../../shared/widgets/app_status_badge.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/mvp_scaffold.dart';
@@ -25,7 +26,7 @@ class ExamListScreen extends ConsumerWidget {
           ..sort((left, right) => left.startAt.compareTo(right.startAt));
         final groups = _groupExams(exams, now);
         return MvpScaffold(
-          title: 'テスト',
+          title: '課題・テスト',
           selectedIndex: 2,
           actions: [
             IconButton(
@@ -35,8 +36,29 @@ class ExamListScreen extends ConsumerWidget {
             ),
           ],
           child: ResponsiveContent(
-            child: exams.isEmpty
-                ? EmptyState(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                AcademicModeSwitch(
+                  selected: AcademicMode.exams,
+                  assignmentCount: state.assignments.length,
+                  examCount: state.exams.length,
+                  onSelected: (mode) {
+                    if (mode == AcademicMode.assignments) {
+                      context.go('/assignments');
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  '試験の日程と教室を確認できます。',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (exams.isEmpty)
+                  EmptyState(
                     icon: Icons.quiz_outlined,
                     title: 'テストはまだありません',
                     message: '試験日が決まったら登録して、課題と一緒に見通せます。',
@@ -46,39 +68,38 @@ class ExamListScreen extends ConsumerWidget {
                       label: const Text('テストを作成'),
                     ),
                   )
-                : ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      for (final group in groups) ...[
-                        AppSectionHeader(
-                          title: group.label,
-                          icon: group.icon,
-                          count: group.exams.length,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        for (final exam in group.exams) ...[
-                          _ExamCard(
-                            exam: exam,
-                            isPast: group.kind == _ExamGroupKind.past,
-                            onTap: () => context.go('/exam/${exam.id}/edit'),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                        ],
-                        const SizedBox(height: AppSpacing.md),
-                      ],
-                      OutlinedButton.icon(
-                        onPressed: () => context.go('/exams/new'),
-                        icon: const Icon(Icons.add),
-                        label: const Text('テストを作成'),
+                else ...[
+                  for (final group in groups) ...[
+                    AppSectionHeader(
+                      title: group.label,
+                      icon: group.icon,
+                      count: group.exams.length,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    for (final exam in group.exams) ...[
+                      _ExamCard(
+                        exam: exam,
+                        isPast: group.kind == _ExamGroupKind.past,
+                        onTap: () => context.go('/exam/${exam.id}/edit'),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.xs),
                     ],
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  OutlinedButton.icon(
+                    onPressed: () => context.go('/exams/new'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('テストを作成'),
                   ),
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
+              ],
+            ),
           ),
         );
       },
       loading: () => MvpScaffold(
-        title: 'テスト',
+        title: '課題・テスト',
         selectedIndex: 2,
         child: Center(
           child: Semantics(
@@ -88,7 +109,7 @@ class ExamListScreen extends ConsumerWidget {
         ),
       ),
       error: (error, stackTrace) => MvpScaffold(
-        title: 'テスト',
+        title: '課題・テスト',
         selectedIndex: 2,
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
