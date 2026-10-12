@@ -2,6 +2,20 @@
 
 2026-10-12の公開用クリーンコピーを対象にした検証です。版ごとにタグとCIでソースを特定します。各テストの生ログ、入力hash、時刻、終了コードは非公開で保全し、ここには安全な要約を掲載します。
 
+## Spatial Week 2.5D source experiment
+
+Optional `3D_EXPERIMENTAL` is retained on source branch `codex/v1.2-spatial-week`. This interactive geometric 2.5D view is built with Flutter CustomPainter, uses existing schedule models, adds no package dependencies, and is disabled by default (`APP_ENABLE_SPATIAL_WEEK=false`). The mobile package remains `1.1.0+2`; this work is not a formal v1.2 release. See the [experiment record](SPATIAL_WEEK_EXPERIMENT.md) for its measurement method, implementation contract, and decision limits.
+
+- PASS: Full Flutter suite — 146 files, 876 passed, 3 existing optional fixture skips. Focused Spatial Week suite — 7 files, 29 passed before the later test-only frame-accounting repair. After that repair, the affected metrics helper has 3 passing tests and whole fatal analyze passes; normal app/UI/test/fixture inputs are unchanged. Existing optional fixture skips retain their original conditions and were not converted into passes.
+- PASS: fatal analyze, format, and code generation; debug APK builds with the feature off and with explicit opt-in. No dependency was added.
+- PASS: Dedicated synthetic API 36 AVD interaction: orbit drag, tap selection, zoom/reset, list mode, complete course detail and Back, route re-entry, rotation, 200% Japanese text, dark theme, and the default-off/opt-in check. This is emulator evidence, not physical-device or iOS acceptance.
+- PASS: Real Drift tests verify the viewer is read-only, outbox rows stay unchanged, stale account/term/calendar context is fenced, and existing live CRUD selection/removal behavior remains intact.
+- PASS: Semantics regression performs a real semantics-node tap and observes one navigator push. This does not establish end-to-end TalkBack usability.
+- MEASURED with limits: Separate in-memory profile fixture, one warmup per mode, three paired same-list/select/detail/Back trials, individual frame IDs, first-entry and orbit windows; separate same-debug-process PSS snapshots. The [experiment record](SPATIAL_WEEK_EXPERIMENT.md) retains conditions and all trial summaries. Stale local merged-native packaging was refreshed and verified; an independent review replaced presentation-timestamp membership with frame-ID boundaries and measurements were repeated. Earlier failures and pre-repair diagnostics remain excluded from accepted metrics.
+- NOT ESTABLISHED / NOT RUN: 60 fps, a consistent performance benefit, human lookup/usability advantage, peak/leak-free memory, iOS behavior, physical-device/OEM behavior and TalkBack end-to-end operation.
+
+The repository-wide CI result remains **FAIL** because the previously documented npm development dependency audit finding remains (`GHSA-vfj7-8cjw-p6xm`, High; production dependency audit has 0 findings). This experiment does not claim an all-green CI run. Fresh source-branch CI and its exact SHA are linked from the public PR and [Actions](https://github.com/ayumu-homma/university-schedule-app/actions). The v1.1.0 release remains [available](https://github.com/ayumu-homma/university-schedule-app/releases/tag/v1.1.0); merged PR 1 remains part of its history.
+
 ## v1.1 Academic UIの検証
 
 Today・時間割・課題とテスト、共通テーマとナビゲーションを変更しています。[デザイン](UX_DESIGN_SYSTEM.md)と[公式資料のUX調査](UX_RESEARCH_V1_1.md)を参照してください。v1.0の成功を変更後の成功として数えていません。
@@ -57,7 +71,7 @@ dart test
 Set-Location ../../apps/mobile
 flutter pub get --enforce-lockfile
 dart run build_runner build --delete-conflicting-outputs
-dart format --output=none --set-exit-if-changed lib test tool_tests integration_test
+dart format --output=none --set-exit-if-changed lib test tool_tests integration_test test_driver
 flutter analyze --fatal-infos --fatal-warnings
 python ../../scripts/run_flutter_local_tests.py --list
 python ../../scripts/run_flutter_local_tests.py --coverage

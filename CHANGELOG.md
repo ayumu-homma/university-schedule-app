@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 3D_EXPERIMENTAL
+
+- Optional interactive geometric 2.5D personal-week view, using existing course, personal-event, exam and deadline models without viewer mutations; `APP_ENABLE_SPATIAL_WEEK=false` keeps it off by default.
+- Same-data 2D comparison, orbit/zoom/reset, read-only selection, complete equivalent list and list-only fallback. No new package or engine dependency. Focused tests and synthetic API 36 emulator interactions passed.
+- Source branch `codex/v1.2-spatial-week` retains the experiment. The package remains `1.1.0+2`; this is not a formal v1.2 release. Emulator frame/PSS diagnostics are recorded with limits; consistent performance and human benefit are unestablished. iOS/physical-device behavior remains unmeasured. Details are in [the experiment record](docs/SPATIAL_WEEK_EXPERIMENT.md) and [testing evidence](docs/TESTING.md#spatial-week-25d-source-experiment).
+
 ## 1.1.0 — Academic UI / Source Release
 
 - Todayで現在・次の授業、時刻と教室、締切・テストへの操作を先に確認できる構成へ整理。空の項目を繰り返し表示せず、必要な追加操作を案内します。

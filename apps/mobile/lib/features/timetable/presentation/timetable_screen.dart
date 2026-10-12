@@ -9,6 +9,7 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/mvp_scaffold.dart';
 import '../../../shared/widgets/privacy_badge.dart';
 import '../../../shared/widgets/responsive_content.dart';
+import '../../spatial_week/application/spatial_week_flag.dart';
 import '../application/demo_app_controller.dart';
 import '../data/local_schedule_repository.dart';
 
@@ -135,6 +136,15 @@ class _TimetableContentState extends ConsumerState<_TimetableContent> {
           key: const Key('timetable-vertical-scroll'),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
           children: [
+            if (ref.watch(spatialWeekEnabledProvider)) ...[
+              OutlinedButton.icon(
+                key: const Key('open-spatial-week'),
+                onPressed: () => context.go('/spatial-week'),
+                icon: const Icon(Icons.view_in_ar_outlined),
+                label: const Text('立体週間ビュー（実験）'),
+              ),
+              const SizedBox(height: 16),
+            ],
             _TimetableViewControl(
               value: _view,
               onChanged: (value) => setState(() => _view = value),
