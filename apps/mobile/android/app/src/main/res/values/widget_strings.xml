@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weekly_timetable_widget_description">月曜から金曜までの時間割</string>
+    <string name="weekly_timetable_widget_title">今週の時間割</string>
+    <string name="weekly_timetable_widget_sync_prompt">アプリを開いて時間割を同期</string>
+    <string name="weekday_monday">月</string>
+    <string name="weekday_tuesday">火</string>
+    <string name="weekday_wednesday">水</string>
+    <string name="weekday_thursday">木</string>
+    <string name="weekday_friday">金</string>
+    <string name="period_one">1限</string>
+    <string name="period_two">2限</string>
+    <string name="period_three">3限</string>
+    <string name="period_four">4限</string>
+    <string name="period_five">5限</string>
+</resources>

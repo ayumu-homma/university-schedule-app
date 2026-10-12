@@ -1,0 +1,10 @@
+# Secret-free release-signing shape only. Do not put real values in this file.
+#
+# At the explicitly approved signing checkpoint, create the ignored file
+# apps/mobile/android/key.properties and point storeFile at an upload keystore
+# held outside Git. The Gradle configuration rejects partial or blank values and
+# never falls back to the debug key.
+storeFile=/absolute/path/outside-the-repository/upload-keystore.jks
+storePassword=SET_ONLY_AT_THE_EXTERNAL_SIGNING_CHECKPOINT
+keyAlias=SET_ONLY_AT_THE_EXTERNAL_SIGNING_CHECKPOINT
+keyPassword=SET_ONLY_AT_THE_EXTERNAL_SIGNING_CHECKPOINT

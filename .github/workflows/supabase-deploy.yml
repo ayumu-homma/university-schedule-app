@@ -1,0 +1,613 @@
+# Source release: every job is disabled; do not dispatch for deployment.
+name: Supabase Deploy
+
+run-name: >-
+  Supabase ${{ inputs.environment }} ${{ inputs.operation }} @ ${{ inputs.deploy_sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Exact GitHub Environment and Supabase target
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      operation:
+        description: Preview first; apply requires its run ID and plan digest
+        required: true
+        type: choice
+        options:
+          - preview
+          - apply
+      deploy_sha:
+        description: Full 40-character SHA selected by the workflow ref
+        required: true
+        type: string
+      production_confirmation:
+        description: Type DEPLOY_PRODUCTION for any production target access
+        required: false
+        default: ""
+        type: string
+      preview_run_id:
+        description: Successful preview workflow run ID required by apply
+        required: false
+        default: ""
+        type: string
+      migration_plan_sha256:
+        description: Exact plan digest from the successful preview artifact
+        required: false
+        default: ""
+        type: string
+      apply_confirmation:
+        description: Type APPLY_STAGING or APPLY_PRODUCTION only for apply
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: supabase-deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    if: >-
+      false && (
+      github.event_name == 'workflow_dispatch' &&
+      github.event.repository.fork == false
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate manual ref, operation, and exact SHA
+        shell: bash
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_OPERATION: ${{ inputs.operation }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DISPATCH_SHA: ${{ github.sha }}
+          DISPATCH_REF: ${{ github.ref }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+          PREVIEW_RUN_ID: ${{ inputs.preview_run_id }}
+          MIGRATION_PLAN_SHA256: ${{ inputs.migration_plan_sha256 }}
+          APPLY_CONFIRMATION: ${{ inputs.apply_confirmation }}
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'deploy_sha must be a full lowercase Git SHA.' >&2
+            exit 1
+          }
+          [[ "$DEPLOY_SHA" == "$DISPATCH_SHA" ]] || {
+            echo 'deploy_sha must exactly match the selected workflow ref HEAD.' >&2
+            exit 1
+          }
+          case "$DEPLOY_ENVIRONMENT" in
+            staging)
+              [[ "$DISPATCH_REF" == 'refs/heads/develop' ||
+                 "$DISPATCH_REF" == 'refs/heads/feature/portfolio-v0.6-production-readiness' ||
+                 "$DISPATCH_REF" == 'refs/heads/master' ]] || {
+                echo 'The selected ref is not approved for staging.' >&2
+                exit 1
+              }
+              [[ -z "$PRODUCTION_CONFIRMATION" ]] || {
+                echo 'Production confirmation is forbidden for staging.' >&2
+                exit 1
+              }
+              ;;
+            production)
+              [[ "$DISPATCH_REF" == 'refs/heads/master' ]] || {
+                echo 'Production deployment is restricted to refs/heads/master.' >&2
+                exit 1
+              }
+              [[ "$PRODUCTION_CONFIRMATION" == 'DEPLOY_PRODUCTION' ]] || {
+                echo 'Production confirmation was not exact.' >&2
+                exit 1
+              }
+              ;;
+            *)
+              echo 'Unknown deployment environment.' >&2
+              exit 1
+              ;;
+          esac
+          case "$DEPLOY_OPERATION" in
+            preview)
+              [[ -z "$PREVIEW_RUN_ID" && -z "$MIGRATION_PLAN_SHA256" &&
+                 -z "$APPLY_CONFIRMATION" ]] || {
+                echo 'Preview must not accept apply approvals.' >&2
+                exit 1
+              }
+              ;;
+            apply)
+              [[ "$PREVIEW_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]] || {
+                echo 'Apply requires a successful preview workflow run ID.' >&2
+                exit 1
+              }
+              [[ "$MIGRATION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
+                echo 'Apply requires the exact preview migration-plan digest.' >&2
+                exit 1
+              }
+              expected_confirmation="APPLY_${DEPLOY_ENVIRONMENT^^}"
+              [[ "$APPLY_CONFIRMATION" == "$expected_confirmation" ]] || {
+                echo 'Apply confirmation was not exact.' >&2
+                exit 1
+              }
+              ;;
+            *)
+              echo 'Unknown deployment operation.' >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Verify GitHub Environment protection metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          metadata_file="${RUNNER_TEMP}/deployment-environment.json"
+          if ! gh api \
+            --method GET \
+            "repos/${REPOSITORY}/environments/${DEPLOY_ENVIRONMENT}" \
+            >"$metadata_file" 2>/dev/null; then
+            echo 'The selected GitHub Environment does not exist or is unreadable.' >&2
+            exit 1
+          fi
+          [[ "$(jq -r '.name // empty' "$metadata_file")" == "$DEPLOY_ENVIRONMENT" ]] || {
+            echo 'GitHub Environment metadata did not match the selected target.' >&2
+            exit 1
+          }
+          reviewer_rules="$(jq '[
+            .protection_rules[]?
+            | select(
+                .type == "required_reviewers" and
+                .prevent_self_review == true and
+                ((.reviewers // []) | length) > 0
+              )
+          ] | length' "$metadata_file")"
+          [[ "$reviewer_rules" -ge 1 ]] || {
+            echo 'Every deployment Environment requires reviewers and self-review prevention.' >&2
+            exit 1
+          }
+          branch_policy="$(jq -r '
+            .deployment_branch_policy.protected_branches == true or
+            .deployment_branch_policy.custom_branch_policies == true
+          ' "$metadata_file")"
+          [[ "$branch_policy" == 'true' ]] || {
+            echo 'Every deployment Environment requires a deployment branch policy.' >&2
+            exit 1
+          }
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.deploy_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify deployment contract tests
+        shell: pwsh
+        run: ./scripts/test_supabase_deployment_guard.ps1
+
+      - name: Verify successful preview run provenance
+        if: inputs.operation == 'apply'
+        id: preview_provenance
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PREVIEW_RUN_ID: ${{ inputs.preview_run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          metadata_file="${RUNNER_TEMP}/approved-preview-run.json"
+          workflow_id="$(gh api \
+            "repos/${REPOSITORY}/actions/workflows/supabase-deploy.yml" \
+            --jq '.id')"
+          [[ "$workflow_id" =~ ^[1-9][0-9]*$ ]] || {
+            echo 'Unable to resolve the deployment workflow identity.' >&2
+            exit 1
+          }
+          if ! gh api \
+            "repos/${REPOSITORY}/actions/runs/${PREVIEW_RUN_ID}" \
+            >"$metadata_file" 2>/dev/null; then
+            echo 'The approved preview workflow run is missing or unreadable.' >&2
+            exit 1
+          fi
+          pwsh -NoLogo -NoProfile \
+            ./scripts/verify_supabase_preview_provenance.ps1 \
+            -Environment "$DEPLOY_ENVIRONMENT" \
+            -DeploySha "$DEPLOY_SHA" \
+            -DeployBranch "$DEPLOY_BRANCH" \
+            -Repository "$REPOSITORY" \
+            -PreviewRunId "$PREVIEW_RUN_ID" \
+            -ExpectedWorkflowId "$workflow_id" \
+            -WorkflowRunMetadataPath "$metadata_file" \
+            -MetadataOnly
+          echo "workflow_id=$workflow_id" >>"$GITHUB_OUTPUT"
+
+      - name: Download the successful preview plan artifact
+        if: inputs.operation == 'apply'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: supabase-migration-plan-${{ inputs.preview_run_id }}
+          path: ${{ runner.temp }}/approved-preview-plan
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.preview_run_id }}
+
+      - name: Verify preview artifact target and digest binding
+        if: inputs.operation == 'apply'
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PREVIEW_RUN_ID: ${{ inputs.preview_run_id }}
+          MIGRATION_PLAN_SHA256: ${{ inputs.migration_plan_sha256 }}
+          REPOSITORY: ${{ github.repository }}
+          EXPECTED_WORKFLOW_ID: ${{ steps.preview_provenance.outputs.workflow_id }}
+        run: |
+          $manifest = Get-Content -Raw supabase/deployment/environments.json |
+            ConvertFrom-Json
+          $projectRef = [string]$manifest.environments.$env:DEPLOY_ENVIRONMENT.projectRef
+          ./scripts/verify_supabase_preview_provenance.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $projectRef `
+            -DeploySha $env:DEPLOY_SHA `
+            -DeployBranch $env:DEPLOY_BRANCH `
+            -Repository $env:REPOSITORY `
+            -PreviewRunId $env:PREVIEW_RUN_ID `
+            -ExpectedWorkflowId $env:EXPECTED_WORKFLOW_ID `
+            -WorkflowRunMetadataPath `
+              (Join-Path $env:RUNNER_TEMP 'approved-preview-run.json') `
+            -PreviewPlanPath `
+              (Join-Path $env:RUNNER_TEMP 'approved-preview-plan/migration-plan.json') `
+            -ExpectedPlanSha256 $env:MIGRATION_PLAN_SHA256
+
+  verify-local:
+    needs: guard
+    if: >-
+      false && (
+      needs.guard.result == 'success' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.event.repository.fork == false
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.deploy_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
+        with:
+          deno-version: v2.9.5
+
+      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: 2.108.0
+
+      - name: Resolve manifest target without protected credentials
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          $manifest = Get-Content -Raw supabase/deployment/environments.json |
+            ConvertFrom-Json
+          $projectRef = [string]$manifest.environments.$env:DEPLOY_ENVIRONMENT.projectRef
+          if ($projectRef -cnotmatch '^[a-z0-9]{20}$') {
+            throw 'The selected deployment manifest target is not activated.'
+          }
+          "SUPABASE_PROJECT_REF=$projectRef" >> $env:GITHUB_ENV
+
+      - name: Validate manifest and exact checkout without remote calls
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+        run: |
+          ./scripts/verify_supabase_predeploy.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $env:SUPABASE_PROJECT_REF `
+            -ExpectedSha $env:DEPLOY_SHA `
+            -ExpectedBranch $env:DEPLOY_BRANCH `
+            -ProductionConfirmation $env:PRODUCTION_CONFIRMATION `
+            -StaticOnly
+
+      - name: Start isolated local Supabase verification stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start >/dev/null 2>&1; then
+            echo 'The local Supabase verification stack failed to start.' >&2
+            exit 1
+          fi
+
+      - name: Run local quality gates without deployment credentials
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+        run: |
+          ./scripts/verify_supabase_predeploy.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $env:SUPABASE_PROJECT_REF `
+            -ExpectedSha $env:DEPLOY_SHA `
+            -ExpectedBranch $env:DEPLOY_BRANCH `
+            -ProductionConfirmation $env:PRODUCTION_CONFIRMATION `
+            -LocalOnly
+
+      - name: Stop local verification stack
+        if: always()
+        shell: bash
+        run: supabase stop --no-backup >/dev/null 2>&1 || true
+
+  deploy-remote:
+    needs:
+      - guard
+      - verify-local
+    if: >-
+      false && (
+      needs.guard.result == 'success' &&
+      needs.verify-local.result == 'success' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.event.repository.fork == false
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.deploy_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: 2.108.0
+
+      - name: Validate protected target and exact checkout before credentials
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          ./scripts/verify_supabase_predeploy.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $env:SUPABASE_PROJECT_REF `
+            -ExpectedSha $env:DEPLOY_SHA `
+            -ExpectedBranch $env:DEPLOY_BRANCH `
+            -ProductionConfirmation $env:PRODUCTION_CONFIRMATION `
+            -StaticOnly
+
+      - name: Link the approved project
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SUPABASE_ACCESS_TOKEN" && -n "$SUPABASE_DB_PASSWORD" ]] || {
+            echo 'Protected Supabase deployment credentials are missing.' >&2
+            exit 1
+          }
+          if ! supabase link \
+            --project-ref "$SUPABASE_PROJECT_REF" >/dev/null 2>&1; then
+            echo 'Supabase link failed for the approved project ref.' >&2
+            exit 1
+          fi
+
+      - name: Verify linked remote inventory without local test execution
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          ./scripts/verify_supabase_predeploy.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $env:SUPABASE_PROJECT_REF `
+            -ExpectedSha $env:DEPLOY_SHA `
+            -ExpectedBranch $env:DEPLOY_BRANCH `
+            -ProductionConfirmation $env:PRODUCTION_CONFIRMATION `
+            -RemoteOnly
+
+      - name: Capture linked migration inventory
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if ! NO_COLOR=1 supabase migration list --linked \
+            >"$RUNNER_TEMP/migration-inventory.txt" 2>/dev/null; then
+            echo 'Unable to read the linked migration inventory.' >&2
+            exit 1
+          fi
+
+      - name: Build exact additive migration plan
+        id: migration_plan
+        shell: pwsh
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_OPERATION: ${{ inputs.operation }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          $planPath = Join-Path $env:RUNNER_TEMP 'migration-plan.json'
+          ./scripts/verify_supabase_migration_plan.ps1 `
+            -Environment $env:DEPLOY_ENVIRONMENT `
+            -ProjectRef $env:SUPABASE_PROJECT_REF `
+            -DeploySha $env:DEPLOY_SHA `
+            -MigrationInventoryPath (Join-Path $env:RUNNER_TEMP 'migration-inventory.txt') `
+            -PlanOutputPath $planPath
+          $digest = (Get-FileHash -Algorithm SHA256 -LiteralPath $planPath).Hash.ToLowerInvariant()
+          "sha256=$digest" >> $env:GITHUB_OUTPUT
+          if ($env:DEPLOY_OPERATION -ceq 'preview') {
+            Write-Host "MigrationPlanSha256=$digest"
+            Write-Host (Get-Content -Raw -LiteralPath $planPath)
+          }
+
+      - name: Confirm CLI dry-run for the exact plan
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if ! NO_COLOR=1 supabase db push --dry-run --linked \
+            >"$RUNNER_TEMP/migration-dry-run.txt" 2>&1; then
+            echo 'Supabase migration dry-run failed; output was suppressed.' >&2
+            exit 1
+          fi
+          echo 'Supabase migration dry-run PASS; use the exact plan digest for a separate apply dispatch.'
+
+      - name: Publish immutable preview plan artifact
+        if: inputs.operation == 'preview'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: supabase-migration-plan-${{ github.run_id }}
+          path: ${{ runner.temp }}/migration-plan.json
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Bind apply to the successful preview artifact digest
+        if: inputs.operation == 'apply'
+        shell: bash
+        env:
+          APPROVED_PLAN_SHA256: ${{ inputs.migration_plan_sha256 }}
+          CURRENT_PLAN_SHA256: ${{ steps.migration_plan.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$APPROVED_PLAN_SHA256" == "$CURRENT_PLAN_SHA256" ]] || {
+            echo 'Migration plan changed after preview; start with a new preview run.' >&2
+            exit 1
+          }
+
+      - name: Apply reviewed additive migrations
+        if: inputs.operation == 'apply'
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          supabase db push --linked
+
+      - name: Bind Edge runtime to the approved target
+        if: inputs.operation == 'apply'
+        shell: bash
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          if ! supabase secrets set \
+            "APP_ENV=$DEPLOY_ENVIRONMENT" \
+            "APP_SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF" \
+            'DOCUMENT_IMPORT_FAKE_ENABLED=false' \
+            'DOCUMENT_IMPORT_PROVIDER=openai_responses' \
+            --project-ref "$SUPABASE_PROJECT_REF" >/dev/null 2>&1; then
+            echo 'Failed to bind the Edge runtime to the approved target.' >&2
+            exit 1
+          fi
+
+      - name: Deploy the explicit Edge Function allowlist
+        if: inputs.operation == 'apply'
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          supabase functions deploy \
+            university-email-verification \
+            email-import \
+            document-import \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            --use-api
+
+      - name: Post-apply health and inventory checks
+        if: inputs.operation == 'apply'
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          project_url="https://${SUPABASE_PROJECT_REF}.supabase.co"
+          curl --fail --silent --show-error \
+            --max-time 15 \
+            "$project_url/auth/v1/health" >/dev/null
+          inventory_file="${RUNNER_TEMP}/supabase-functions.txt"
+          supabase functions list \
+            --project-ref "$SUPABASE_PROJECT_REF" >"$inventory_file"
+          for function_name in \
+            university-email-verification \
+            email-import \
+            document-import; do
+            grep -Fq "$function_name" "$inventory_file" || {
+              echo "Required Edge Function is absent after deploy: $function_name" >&2
+              exit 1
+            }
+          done
+          supabase migration list --linked >/dev/null
+
+      - name: Write non-secret deployment summary
+        if: success()
+        shell: bash
+        env:
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          DEPLOY_OPERATION: ${{ inputs.operation }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          MIGRATION_PLAN_SHA256: ${{ steps.migration_plan.outputs.sha256 }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          masked_ref="${SUPABASE_PROJECT_REF:0:6}...${SUPABASE_PROJECT_REF: -4}"
+          {
+            echo '## Supabase deployment gate'
+            echo
+            echo "- Environment: \`$DEPLOY_ENVIRONMENT\`"
+            echo "- Operation: \`$DEPLOY_OPERATION\`"
+            echo "- Branch: \`$DEPLOY_BRANCH\`"
+            echo "- Exact SHA: \`$DEPLOY_SHA\`"
+            echo "- Project ref: \`$masked_ref\`"
+            echo "- Migration plan SHA-256: \`$MIGRATION_PLAN_SHA256\`"
+            if [[ "$DEPLOY_OPERATION" == 'preview' ]]; then
+              echo '- Result: read-only preview only; no migration, secret, or function mutation'
+              echo "- Preview run ID: \`$GITHUB_RUN_ID\`"
+              echo '- Artifact: immutable migration plan retained for 14 days'
+              echo '- Next: separately dispatch apply with this run ID, exact digest, and confirmation'
+            else
+              echo '- Result: exact preview plan reapplied, additive migrations and explicit functions deployed'
+              echo '- Runtime binding: environment/ref enforced; Document AI fake mode disabled'
+            fi
+          } >>"$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,87 @@
+title = "Uni Schedule secret scan: default rules plus reviewed noncredential literals"
+
+[extend]
+useDefault = true
+
+# Each exception requires BOTH the exact file and exact source line.
+# No real credentials or JWTs are allowlisted; all default detection rules remain enabled.
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Persistent permission state key name; not a credential"
+paths = ['''(^|/)apps/mobile/lib/features/notification/data/local_notification_store\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*static const legacyOrdinaryPermissionPromptKey = 'ordinary_permission_v1';\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p132_friend_default_internal_api_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p132-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p146_friend_timetable_block_live_auth_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p146-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p147_friend_timetable_account_switch_live_auth_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p147-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p158_blocked_availability_live_auth_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p158-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p160_unblocked_availability_live_auth_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p160-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p161_availability_account_switch_live_auth_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p161-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p118_friend_default_real_api_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p118-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "Synthetic local storage-scope activation marker; not an Auth bearer or provider token"
+paths = ['''(^|/)apps/mobile/test/p84_default_autoload_friend_timetable_test\.dart$''']
+regexTarget = "line"
+regexes = ['''^\s*activationToken: 'p84-p112-synthetic-scope',\s*$''']
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+condition = "AND"
+description = "SQL pgTAP privilege assertion; not an API credential"
+paths = ['''(^|/)supabase/tests/phase16_university_templates\.sql$''']
+regexTarget = "line"
+regexes = ['''^\s*select extensions\.ok\(not has_table_privilege\('authenticated','private\.phase16_student_operation_receipts','SELECT'\),'student receipts remain private'\);\s*$''']

@@ -1,0 +1,13 @@
+name: shared_domain
+description: Shared domain models and business rules for the university schedule app.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  timezone: ^0.10.1
+
+dev_dependencies:
+  test: ^1.25.0

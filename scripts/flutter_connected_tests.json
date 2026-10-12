@@ -1,0 +1,175 @@
+{
+  "scope": "Local unit/widget runner excludes only these named connected-fixture files. Run them directly only with a scoped isolated fixture.",
+  "tests": [
+    {
+      "path": "test/p118_friend_default_real_api_test.dart",
+      "required_environment": [
+        "P118_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p132_friend_default_internal_api_test.dart",
+      "required_environment": [
+        "P132_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p142_p61_group_member_live_api_test.dart",
+      "required_environment": [
+        "P142_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p143_p61_group_member_live_auth_stream_test.dart",
+      "required_environment": [
+        "P143_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p144_p61_profile_search_live_auth_stream_test.dart",
+      "required_environment": [
+        "P144_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p145_group_availability_live_auth_stream_test.dart",
+      "required_environment": [
+        "P145_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p146_friend_timetable_block_live_auth_test.dart",
+      "required_environment": [
+        "P146_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p147_friend_timetable_account_switch_live_auth_test.dart",
+      "required_environment": [
+        "P147_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p148_friend_visibility_live_save_to_other_viewer_test.dart",
+      "required_environment": [
+        "P148_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p151_group_availability_block_live_auth_test.dart",
+      "required_environment": [
+        "P151_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p152_friend_visibility_busy_only_live_test.dart",
+      "required_environment": [
+        "P152_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p153_group_private_event_live_auth_test.dart",
+      "required_environment": [
+        "P153_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p155_group_availability_reverse_block_live_auth_test.dart",
+      "required_environment": [
+        "P155_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p156_today_group_events_live_auth_test.dart",
+      "required_environment": [
+        "P156_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p158_blocked_availability_live_auth_test.dart",
+      "required_environment": [
+        "P158_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p160_unblocked_availability_live_auth_test.dart",
+      "required_environment": [
+        "P160_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p161_availability_account_switch_live_auth_test.dart",
+      "required_environment": [
+        "P161_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p162_friend_visibility_title_only_live_test.dart",
+      "required_environment": [
+        "P162_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p163_friend_visibility_private_live_test.dart",
+      "required_environment": [
+        "P163_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p164_group_availability_account_switch_live_auth_test.dart",
+      "required_environment": [
+        "P164_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p165_group_availability_mixed_busy_privacy_live_auth_test.dart",
+      "required_environment": [
+        "P165_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p166_group_default_visibility_live_auth_test.dart",
+      "required_environment": [
+        "P166_FLUTTER_FIXTURE_PATH"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p84_default_autoload_friend_timetable_test.dart",
+      "required_environment": [
+        "P84_FLUTTER_FIXTURE_JSON",
+        "P84_FLUTTER_PROGRESS"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    },
+    {
+      "path": "test/p84_live_friend_timetable_integration_test.dart",
+      "required_environment": [
+        "P84_FLUTTER_FIXTURE",
+        "P84_FLUTTER_PROGRESS"
+      ],
+      "reason": "Requires a separately authorized isolated Auth/API fixture; retained as a connected test."
+    }
+  ]
+}

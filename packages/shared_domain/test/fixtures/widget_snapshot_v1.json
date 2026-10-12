@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "mode": "timetable_week",
+  "generatedAt": "2026-08-17T00:00:00.000Z",
+  "weekStart": "2026-08-17",
+  "timezone": "Asia/Tokyo",
+  "privacyMode": "titleAndRoom",
+  "days": [
+    {"dayOfWeek": 1, "label": "月"},
+    {"dayOfWeek": 2, "label": "火"},
+    {"dayOfWeek": 3, "label": "水"},
+    {"dayOfWeek": 4, "label": "木"},
+    {"dayOfWeek": 5, "label": "金"}
+  ],
+  "periods": [
+    {"periodNo": 1, "start": "08:40", "end": "10:20"},
+    {"periodNo": 2, "start": "10:35", "end": "12:15"},
+    {"periodNo": 3, "start": "13:05", "end": "14:45"},
+    {"periodNo": 4, "start": "15:00", "end": "16:40"},
+    {"periodNo": 5, "start": "16:55", "end": "18:35"}
+  ],
+  "items": [
+    {
+      "courseId": "course-1",
+      "dayOfWeek": 1,
+      "periodNo": 2,
+      "title": "線形代数",
+      "room": "A101",
+      "colorKey": "course_blue",
+      "deepLink": "unischedule://course/course-1"
+    }
+  ]
+}

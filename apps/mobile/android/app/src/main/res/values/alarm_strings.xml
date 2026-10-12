@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="morning_alarm_channel_name">朝の確認アラーム</string>
+    <string name="morning_alarm_channel_description">選択した朝の時刻に今日の予定確認を知らせます</string>
+    <string name="morning_alarm_title">朝の確認時間です</string>
+    <string name="morning_alarm_test_title">朝の確認テスト</string>
+    <string name="morning_alarm_ringing_title">おはようございます</string>
+    <string name="morning_alarm_body">今日の授業・課題・テストを確認しましょう</string>
+    <string name="morning_alarm_stop">停止</string>
+    <string name="morning_alarm_snooze">%1$d分スヌーズ</string>
+    <string name="morning_alarm_today">Todayを確認</string>
+</resources>

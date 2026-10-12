@@ -1,0 +1,39 @@
+{
+  "name": "university-schedule-admin",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "node scripts/validate-supabase-account-deletion-config.mjs && node scripts/validate-account-deletion-build-config.mjs",
+    "build": "next build",
+    "lint": "eslint . --max-warnings=0",
+    "test:account-deletion-url": "node --test test/account-deletion-url.test.mjs",
+    "test:account-deletion-contract": "node --test test/account-deletion-contract.test.mjs",
+    "test:account-deletion-build-config": "node --test test/account-deletion-build-config.test.mjs",
+    "test:supabase-account-deletion-config": "node --test test/supabase-account-deletion-config.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
+    "next": "15.5.27",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "15.5.27",
+    "smol-toml": "1.9.0",
+    "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "js-yaml": "4.3.2",
+    "sharp": "0.35.5",
+    "next": {
+      "postcss": "8.5.26"
+    },
+    "source-map-js": "1.2.2"
+  }
+}

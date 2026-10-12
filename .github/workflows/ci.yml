@@ -1,0 +1,302 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FLUTTER_VERSION: 3.44.4
+
+jobs:
+  dart-flutter:
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-user-home
+      GRADLE_OPTS: >-
+        -Dorg.gradle.jvmargs=-Xmx2G
+        -Dorg.gradle.workers.max=1
+        -Dorg.gradle.parallel=false
+        -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Java 21 for Android and Robolectric
+        run: |
+          test -x "$JAVA_HOME_21_X64/bin/java"
+          echo "JAVA_HOME=$JAVA_HOME_21_X64" >>"$GITHUB_ENV"
+          echo "$JAVA_HOME_21_X64/bin" >>"$GITHUB_PATH"
+          "$JAVA_HOME_21_X64/bin/java" -version
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: false
+
+      - name: Shared domain dependencies
+        working-directory: packages/shared_domain
+        run: dart pub get --enforce-lockfile
+
+      - name: Shared domain format
+        working-directory: packages/shared_domain
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Shared domain analyze
+        working-directory: packages/shared_domain
+        run: dart analyze
+
+      - name: Shared domain tests
+        working-directory: packages/shared_domain
+        run: dart test
+
+      - name: Mobile dependencies
+        working-directory: apps/mobile
+        run: flutter pub get --enforce-lockfile
+
+      - name: Drift/codegen check
+        working-directory: apps/mobile
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          test -s lib/local_db/app_database.g.dart
+          test -s lib/features/friends/data/shared_friend_cache_database.g.dart
+
+      - name: Mobile format
+        working-directory: apps/mobile
+        run: >-
+          dart format --output=none --set-exit-if-changed
+          lib test tool_tests integration_test
+
+      - name: Mobile analyze
+        working-directory: apps/mobile
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Assignment filter timezone regression
+        working-directory: apps/mobile
+        run: |
+          TZ=UTC flutter test test/assignment_list_screen_test.dart \
+            --plain-name '課題フィルターが今日・今週・提出済みを切り替える'
+          TZ=Asia/Tokyo flutter test test/assignment_list_screen_test.dart \
+            --plain-name '課題フィルターが今日・今週・提出済みを切り替える'
+
+      - name: SQLite worker contention preflight
+        working-directory: apps/mobile
+        run: >-
+          flutter test --no-pub --enable-vmservice
+          test/sqlite_runtime_diagnostic_test.dart
+          test/sqlite_storage_guard_test.dart
+          test/local_notification_readonly_snapshot_test.dart
+          --name 'SQLite runtime timeout diagnostics|worker busy timeout waits for a competing connection to release|background loader waits for a competing database connection'
+
+      - name: Mobile tests
+        working-directory: apps/mobile
+        run: python3 ../../scripts/run_flutter_local_tests.py --coverage
+
+      - name: Portfolio UI and accessibility regressions
+        working-directory: apps/mobile
+        run: >-
+          flutter test
+          test/design_system_test.dart
+          test/schedule_ui_stream_test.dart
+          test/today_screen_test.dart
+          test/notification_settings_screen_test.dart
+          test/document_import_chat_screen_test.dart
+          test/unsaved_changes_guard_test.dart
+
+      - name: Android staging debug APK
+        working-directory: apps/mobile
+        run: >-
+          flutter build apk --debug --flavor staging
+          --dart-define=APP_ENV=local
+          --dart-define=APP_DEMO_MODE=true
+          --dart-define=APP_DEEP_LINK_SCHEME=unischedule-staging
+
+      - name: Android morning alarm unit tests
+        working-directory: apps/mobile/android
+        run: ./gradlew :app:testStagingDebugUnitTest --no-daemon
+
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install admin dependencies
+        working-directory: apps/admin
+        run: npm ci
+      - name: Admin lint
+        working-directory: apps/admin
+        run: npm run lint
+      - name: Existing admin tests
+        working-directory: apps/admin
+        run: node --test test/*.test.mjs
+      - name: Admin build
+        working-directory: apps/admin
+        run: npm run build
+
+  admin-dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Lockfile dependencies
+        working-directory: apps/admin
+        run: npm ci
+      - name: Runtime audit (supplementary; full audit remains mandatory to report)
+        working-directory: apps/admin
+        run: npm audit --omit=dev --audit-level=high
+      - name: Full dependency audit (known unpatched dev dependency remains a failure)
+        working-directory: apps/admin
+        run: npm audit --audit-level=high
+
+  notification-dispatcher-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.7
+      - name: Cache dispatcher test dependency
+        run: deno cache --no-lock supabase/functions/notification-dispatcher/index_test.ts
+      - name: Check and test dispatcher handler without network or environment access
+        run: |
+          deno fmt --check \
+            supabase/functions/notification-dispatcher/index.ts \
+            supabase/functions/notification-dispatcher/index_test.ts
+          deno check --no-lock --cached-only \
+            supabase/functions/notification-dispatcher/index.ts \
+            supabase/functions/notification-dispatcher/index_test.ts
+          deno test --no-lock --no-prompt --cached-only --deny-net --deny-env \
+            supabase/functions/notification-dispatcher/index_test.ts
+
+  sql-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.108.0
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: false
+      - name: Edge function format and tests
+        run: |
+          deno fmt --check \
+            supabase/functions/university-email-verification \
+            supabase/functions/email-import \
+            supabase/functions/document-import
+          deno lint \
+            supabase/functions/email-import \
+            supabase/functions/document-import
+          deno check \
+            supabase/functions/university-email-verification/index.ts \
+            supabase/functions/email-import/index.ts \
+            supabase/functions/document-import/index.ts
+          deno test --allow-env supabase/functions/university-email-verification/index_test.ts
+          deno test supabase/functions/email-import
+          deno test supabase/functions/document-import
+      - name: Supabase migration smoke
+        run: |
+          supabase start >"$RUNNER_TEMP/supabase-start.log" 2>&1 || {
+            echo "Local Supabase failed to start." >&2
+            python3 scripts/summarize_supabase_start.py "$RUNNER_TEMP/supabase-start.log"
+            docker ps -a --filter 'label=com.supabase.cli.project=university_schedule_app' --format '{{.Names}} {{.Status}}'
+            df -h /
+            exit 1
+          }
+          bash scripts/run_supabase_sql_ci.sh --privileges-only
+          bash scripts/test_schedule_sync_upgrade.sh
+          supabase db reset
+          supabase db lint --local
+          bash scripts/run_supabase_sql_ci.sh
+      - name: Local Supabase schedule sync integration
+        run: |
+          (cd apps/mobile && flutter pub get --enforce-lockfile)
+          (cd apps/mobile && dart run build_runner build)
+          bash scripts/run_mobile_schedule_sync_local_supabase.sh
+
+  repository-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Git patch hygiene
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            git show --format= --check HEAD
+          else
+            git diff --check "${{ github.event.before }}" HEAD
+          fi
+      - name: Public source inventory and relative links
+        run: python3 scripts/verify_public_source.py
+      - name: GitHub Actions syntax
+        run: >-
+          docker run --rm
+          -v "$PWD:/repo"
+          -w /repo
+          rhysd/actionlint:1.7.12
+      - name: Bash syntax
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done
+          bash scripts/test_android_e2e_install_guard.sh
+          bash scripts/test_android_e2e_marker_guard.sh
+          bash scripts/test_android_e2e_runner_disk_guard.sh
+          bash scripts/test_android_release_contract.sh
+          bash scripts/test_android_environment_isolation_contract.sh
+          bash scripts/test_ios_widget_contract.sh
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $errors = @()
+          Get-ChildItem scripts -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$parseErrors
+            )
+            $errors += $parseErrors
+          }
+          if ($errors.Count -gt 0) {
+            $errors | Format-List
+            exit 1
+          }
+      - name: Production-readiness contract tests
+        shell: pwsh
+        run: |
+          ./scripts/test_supabase_deployment_guard.ps1
+          ./scripts/test_supabase_migration_plan_contract.ps1
+          ./scripts/test_document_ai_staging_smoke_contract.ps1
+          ./scripts/test_android_physical_acceptance_contract.ps1
+      - name: Current-tree secret scan
+        run: >-
+          docker run --rm
+          -v "$PWD:/repo"
+          zricethezav/gitleaks:v8.30.1
+          dir /repo --no-banner --redact
+      - name: New public Git history secret scan
+        run: >-
+          docker run --rm
+          -v "$PWD:/repo"
+          zricethezav/gitleaks:v8.30.1
+          git /repo --log-opts=--all --no-banner --redact

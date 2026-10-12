@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "baselineRemoteVersion": "202608110015",
+  "automaticMigrations": [
+    {
+      "version": "202608220016",
+      "file": "202608220016_document_cleanup_operations.sql",
+      "sha256": "c42e1d87632d62bdfadaaf94d5d4b63e727e7a88b4e7ed983292be15fab90621",
+      "classification": "additive-reviewed"
+    }
+  ]
+}

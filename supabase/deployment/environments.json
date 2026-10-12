@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "supabaseCliVersion": "2.108.0",
+  "requiredFunctions": [
+    "university-email-verification",
+    "email-import",
+    "document-import"
+  ],
+  "requiredSecretNames": [
+    "APP_ENV",
+    "APP_SUPABASE_PROJECT_REF",
+    "DOCUMENT_IMPORT_ENABLED",
+    "DOCUMENT_IMPORT_FAKE_ENABLED",
+    "DOCUMENT_IMPORT_MODEL_ENABLED",
+    "DOCUMENT_IMPORT_MODEL_ID",
+    "DOCUMENT_IMPORT_PROVIDER",
+    "DOCUMENT_IMPORT_PROVIDER_MAX_ATTEMPTS",
+    "DOCUMENT_IMPORT_RETRY_BASE_MS",
+    "DOCUMENT_IMPORT_TIMEOUT_MS",
+    "EMAIL_IMPORT_ACCOUNT_HASH_KEY",
+    "EMAIL_IMPORT_APP_REDIRECT_URI",
+    "EMAIL_IMPORT_ENABLED",
+    "EMAIL_IMPORT_MODEL_ENABLED",
+    "EMAIL_IMPORT_MODEL_ID",
+    "EMAIL_IMPORT_TOKEN_ENCRYPTION_KEY",
+    "EMAIL_IMPORT_TOKEN_ENCRYPTION_KEY_VERSION",
+    "GMAIL_OAUTH_CLIENT_ID",
+    "GMAIL_OAUTH_CLIENT_SECRET",
+    "GMAIL_OAUTH_REDIRECT_URI",
+    "OPENAI_API_KEY",
+    "UNIVERSITY_VERIFICATION_EMAIL_WEBHOOK_TOKEN",
+    "UNIVERSITY_VERIFICATION_EMAIL_WEBHOOK_URL",
+    "UNIVERSITY_VERIFICATION_HMAC_SECRET"
+  ],
+  "environments": {
+    "staging": {
+      "projectRef": "SET_STAGING_PROJECT_REF",
+      "githubEnvironment": "staging",
+      "allowedBranches": [
+        "develop",
+        "feature/portfolio-v0.6-production-readiness",
+        "master"
+      ],
+      "allowDemoOrFake": false,
+      "requiresProductionConfirmation": false
+    },
+    "production": {
+      "projectRef": "SET_PRODUCTION_PROJECT_REF",
+      "githubEnvironment": "production",
+      "allowedBranches": [
+        "master"
+      ],
+      "allowDemoOrFake": false,
+      "requiresProductionConfirmation": true
+    }
+  }
+}

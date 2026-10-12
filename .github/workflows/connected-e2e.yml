@@ -1,0 +1,83 @@
+name: Connected Android E2E (manual, disposable)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  FLUTTER_VERSION: 3.44.4
+jobs:
+  android-personal-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-user-home
+      GRADLE_OPTS: >-
+        -Dorg.gradle.jvmargs=-Xmx2G
+        -Dorg.gradle.workers.max=1
+        -Dorg.gradle.parallel=false
+        -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Java 21 for Android and Robolectric
+        run: |
+          test -x "$JAVA_HOME_21_X64/bin/java"
+          echo "JAVA_HOME=$JAVA_HOME_21_X64" >>"$GITHUB_ENV"
+          echo "$JAVA_HOME_21_X64/bin" >>"$GITHUB_PATH"
+          "$JAVA_HOME_21_X64/bin/java" -version
+      - name: Reclaim runner disk space for the Android emulator
+        run: bash scripts/android_e2e_runner_disk_guard.sh reclaim
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: false
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.108.0
+      - name: Mobile dependencies
+        working-directory: apps/mobile
+        run: flutter pub get --enforce-lockfile
+      - name: Generate fresh sources
+        working-directory: apps/mobile
+        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Start clean local Supabase acceptance stack
+        run: |
+          supabase start >"$RUNNER_TEMP/supabase-start.log" 2>&1 || {
+            echo 'The local Supabase acceptance stack failed to start.' >&2
+            python3 scripts/summarize_supabase_start.py "$RUNNER_TEMP/supabase-start.log"
+            docker ps -a --filter 'label=com.supabase.cli.project=university_schedule_app' --format '{{.Names}} {{.Status}}'
+            df -h /
+            exit 1
+          }
+          supabase db reset --local >/dev/null 2>&1 || {
+            echo 'The local Supabase acceptance database failed to reset.' >&2
+            exit 1
+          }
+      - name: Check Android emulator host capacity
+        run: bash scripts/android_e2e_runner_disk_guard.sh preflight
+      - name: Enable KVM for the Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android staging personal-management E2E
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          # Emulator 36.6.11 repeatedly lost its QEMU process on this Linux
+          # runner before the first app marker. Pin Google's 36.4.10 stable build.
+          emulator-build: 15004761
+          # Emulator 36.4.9+ deprecates swiftshader_indirect. Use the supported
+          # direct SwiftShader backend for both GLES and Vulkan so Flutter's
+          # Impeller workload does not fall back to LLVMpipe on this runner.
+          emulator-options: >-
+            -no-window -gpu swiftshader -no-snapshot -noaudio
+            -no-boot-anim -camera-back none
+          pre-emulator-launch-script: >-
+            bash scripts/android_e2e_runner_disk_guard.sh prelaunch
+          script: >-
+            bash scripts/run_android_personal_management_e2e.sh
+            --device-id emulator-5554

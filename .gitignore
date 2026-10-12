@@ -1,0 +1,101 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+coverage/
+
+# Generated code
+*.g.dart
+*.freezed.dart
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Supabase / local env
+.env
+.env.*
+!.env.example
+supabase/.branches/
+supabase/.temp/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+
+# Native build artifacts
+apps/mobile/android/.gradle/
+apps/mobile/android/.kotlin/
+apps/mobile/android/local.properties
+local.properties
+apps/mobile/ios/Pods/
+apps/mobile/ios/.symlinks/
+apps/mobile/ios/Flutter/Generated.xcconfig
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets / signing
+*.jks
+*.keystore
+key.properties
+*.p8
+*.p12
+*.pem
+
+# Local execution evidence and scratch environments (not runtime/build inputs).
+/work/
+/output/
+/evidence/
+/.playwright-cli/
+/docs/design/integration/
+/docs/design/prototypes/
+/docs/CODEX_PROGRESS.md
+/docs/RELEASE_CLOSEOUT.md
+/PLANS.md
+/README_Codex.md
+/prompts/
+/gates.txt
+*.tsbuildinfo
+__pycache__/
+*.pyc
+*.apk
+*.aab
+/docs/assets/demo/university_schedule_app_demo.mp4
+*.key
+*.mobileprovision
+GoogleService-Info.plist
+google-services.json
+
+# Flutter generated files
+apps/mobile/ios/Flutter/ephemeral/
+
+
+# Local environment files
+.env
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Signing and private credentials
+**/key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+# Legacy local orchestration helper depends on an unpublished personal prompt.
+/scripts/run_codex_goal_seek.sh
