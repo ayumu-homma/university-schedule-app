@@ -9,6 +9,7 @@
 - Git LFS、submodule、symlinkを持ち込みません。生成Dartは公開ソースから再生成します。
 - CIは標準Public runner。検証workflowでcache/artifactを保存せず、APK/AABを転送しません。配備workflowの全jobを無効化。
 - 未修正の開発用依存監査FAILとその影響範囲は[TESTING](TESTING.md)で明示。
-- タグ、Release、匿名閲覧、fresh cloneの最終確認は公開後に追記します。
+- 未認証HTTPでREADME・主要文書・全掲載画像を読み戻し、公開commitのbytesと一致することを確認。認証helperを使わないfresh cloneで依存取得・コード生成も確認。
+- 最終の公開commitとtagの対応、CI、通常Releaseの確認は[v1.0.0 Release](https://github.com/ayumu-homma/university-schedule-app/releases/tag/v1.0.0)を正本とします。APK/AABは添付しません。
 
 本人コードへのOSSライセンスは未付与です。[第三者の権利](../THIRD_PARTY_NOTICES.md)を維持します。スキャン成功は安全の完全な保証ではありません。

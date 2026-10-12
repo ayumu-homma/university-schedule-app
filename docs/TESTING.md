@@ -13,8 +13,9 @@
 - PASS：Deno2.9.7によるEdge format/lint/checkと168テスト。実サービス接続の成功ではありません。
 - PASS：配備ガード・migration計画・資料AI smoke入口・物理Android入口の契約テスト。実配備・実AI・実機の成功ではありません。
 - PASS：Android local/demo APK（1.0.0+1）を生成。JVM/Robolectric68件成功・failure/error/skip0。新規専用API36 AVDにインストールし、合成Auth、Home/Today、時間割の日/週表示、課題、提出済みを記録する導線、再起動後の表示を確認。物理端末や接続E2Eとは別です。
-- ENV_BLOCKED（ローカル）：Docker engineが停止しているためSQL入口を実行していません。GitHub-hosted専用入口にローカル環境変数を偽装せず、新規Public CI DBでmigration・SQL・権限を検証します。
-- PENDING：公開候補の無料CIと未認証読み戻し。
+- ENV_BLOCKED（ローカル）/ PASS（公開CI）：ローカルDocker engineは停止。GitHub-hosted専用入口に環境変数を偽装せず、新規Public CI DBでmigration・upgrade・lint・実行権限、58 pgTAPファイル・1475 assertion、別の実COMMIT検査、ローカルAuth/API同期統合1ケースを検証しました。
+- PASS：未認証HTTPでREADME・主要文書・全掲載画像の14項目を取得し、公開commitのbytesと一致。認証helperを使わない新規cloneからlockfile依存取得・Drift生成も成功。
+- CIの正本は[Actions](https://github.com/ayumu-homma/university-schedule-app/actions)と[v1.0.0 Release](https://github.com/ayumu-homma/university-schedule-app/releases/tag/v1.0.0)です。full auditは下記のFAILを保持し、全CI greenを主張しません。Windows実測とfresh Linux checkoutの結果を区別します。
 
 ## 管理画面の依存監査
 
