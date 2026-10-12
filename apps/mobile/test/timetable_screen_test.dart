@@ -118,7 +118,7 @@ void main() {
       assignments: [
         Assignment(
           id: 'room-assignment',
-          ownerUserId: 'test-user',
+          ownerUserId: demoScheduleContext.ownerUserId,
           title: '提出物',
           dueAt: DateTime.utc(2026, 8, 12),
           courseId: 'room-course',
@@ -142,7 +142,7 @@ void main() {
     final cardRect = tester.getRect(
       find.byKey(const ValueKey('week-course-cell-room-course')),
     );
-    expect(roomRect.width, cardRect.width - 8);
+    expect(roomRect.width, cardRect.width - 4);
     expect(roomRect.center.dx, closeTo(cardRect.center.dx, 0.01));
     expect(cardRect.bottom - roomRect.bottom, lessThanOrEqualTo(12));
     expect(
@@ -167,6 +167,14 @@ void main() {
       find.byTooltip('長い授業タイトルの折返し確認用テキストの操作'),
     );
     await tester.pumpAndSettle();
+    expect(
+      tester.widget<Text>(find.byKey(const Key('course-actions-title'))).data,
+      '長い授業タイトルの折返し確認用テキスト',
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('course-actions-room'))).data,
+      '23号館 218教室',
+    );
     expect(find.text('詳細を見る'), findsOneWidget);
     expect(find.text('編集'), findsOneWidget);
     expect(find.text('削除'), findsOneWidget);
@@ -343,8 +351,8 @@ UserCourse _course({
 }) =>
     UserCourse(
       id: id,
-      ownerUserId: 'test-user',
-      termId: 'test-term',
+      ownerUserId: demoScheduleContext.ownerUserId,
+      termId: demoScheduleContext.termId,
       title: title,
       normalizedTitle: title.toLowerCase(),
       dayOfWeek: weekday,

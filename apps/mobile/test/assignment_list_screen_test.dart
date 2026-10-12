@@ -155,6 +155,7 @@ void main() {
     expect(find.text('期限切れの課題（1件）'), findsOneWidget);
     expect(find.text('今日まで（1件）'), findsOneWidget);
     expect(find.text('今週中（1件）'), findsOneWidget);
+    await _ensureVisible(tester, find.text('それ以降（1件）'));
     expect(find.text('それ以降（1件）'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -177,7 +178,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '提出済みを記録'));
+    final submit = find.widgetWithText(OutlinedButton, '提出済みを記録');
+    await _ensureVisible(tester, submit);
+    await tester.tap(submit);
     await tester.pump();
 
     expect(controller.submitCalls, 1);
@@ -192,10 +195,14 @@ void main() {
 
     expect(controller.submitCalls, 1);
     expect(find.text('「待機する課題」を提出済みにしました。'), findsOneWidget);
+    await _ensureVisible(tester, find.text('未提出の課題はありません'));
     expect(find.text('未提出の課題はありません'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('assignment-filter-done')));
+    final doneFilter = find.byKey(const Key('assignment-filter-done'));
+    await _ensureVisible(tester, doneFilter);
+    await tester.tap(doneFilter);
     await tester.pump();
+    await _ensureVisible(tester, find.text('待機する課題'));
     expect(find.text('待機する課題'), findsOneWidget);
   });
 
@@ -218,7 +225,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '提出済みを記録'));
+    final submit = find.widgetWithText(OutlinedButton, '提出済みを記録');
+    await _ensureVisible(tester, submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
     expect(
@@ -248,7 +257,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '提出済みを記録'));
+    final submit = find.widgetWithText(OutlinedButton, '提出済みを記録');
+    await _ensureVisible(tester, submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
     expect(find.text('元に戻す'), findsOneWidget);
     expect(find.text('Undoする課題'), findsNothing);
@@ -305,7 +316,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(OutlinedButton, '提出済みを記録'));
+    final submit = find.widgetWithText(OutlinedButton, '提出済みを記録');
+    await _ensureVisible(tester, submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
     expect(find.text('元に戻す'), findsOneWidget);
 
@@ -439,6 +452,51 @@ void main() {
     expect(find.text('授業なしの課題'), findsNothing);
   });
 
+  testWidgets('締切サマリーから今日を見ると授業別絞り込みも全件へ戻す', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final state = _state(
+      now: now,
+      assignments: [
+        _assignment(
+          'today-other-course',
+          '別授業の今日の課題',
+          _jst(2026, 7, 15, 18),
+          courseId: 'course-other',
+        ),
+        _assignment(
+          'later-selected-course',
+          '選択中授業の来週の課題',
+          _jst(2026, 7, 22, 18),
+          courseId: 'course-selected',
+        ),
+      ],
+      courses: [
+        _course('course-other', '別授業', 'current-term'),
+        _course('course-selected', '選択授業', 'current-term'),
+      ],
+    );
+
+    await tester.pumpWidget(_testApp(state: state, now: now));
+    await tester.pumpAndSettle();
+
+    final courseFilter = find.byKey(const Key('assignment-course-filter'));
+    await tester.tap(courseFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('選択授業').last);
+    await tester.pumpAndSettle();
+    expect(find.text('選択中授業の来週の課題'), findsOneWidget);
+    expect(find.text('別授業の今日の課題'), findsNothing);
+
+    await tester.tap(find.text('今日を見る'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('すべての授業'), findsOneWidget);
+    expect(find.text('別授業の今日の課題'), findsOneWidget);
+    expect(find.text('選択中授業の来週の課題'), findsNothing);
+  });
+
   testWidgets('状態チップで進行中にし、期限切れは表示だけで算出する', (tester) async {
     final controller = _TestDemoAppController(
       initialState: _state(
@@ -459,13 +517,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final statusMenu = find.byKey(const Key('assignment-status-start'));
+    await _ensureVisible(tester, statusMenu);
     expect(find.text('未着手'), findsOneWidget);
     expect(find.text('期限切れ'), findsOneWidget);
-    await tester.ensureVisible(
-      find.byKey(const Key('assignment-status-start')),
-    );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('assignment-status-start')));
+    await tester.tap(statusMenu);
     await tester.pumpAndSettle();
     await tester.tap(find.text('進行中にする'));
     await tester.pumpAndSettle();
@@ -475,6 +532,26 @@ void main() {
     expect(find.text('「着手する課題」を進行中にしました。'), findsOneWidget);
     expect(find.text('期限切れ'), findsOneWidget);
   });
+}
+
+Future<void> _ensureVisible(WidgetTester tester, Finder target) async {
+  final listView = find.byType(ListView).first;
+  final scrollable = find
+      .descendant(
+        of: listView,
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  if (target.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      target,
+      160,
+      scrollable: scrollable,
+    );
+  } else {
+    await tester.ensureVisible(target);
+  }
+  await tester.pumpAndSettle();
 }
 
 Widget _testApp({

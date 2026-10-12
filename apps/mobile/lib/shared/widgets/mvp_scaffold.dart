@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/theme/app_tokens.dart';
+
 /// A composition-root supplied banner for the ordinary signed-in scaffold.
 ///
 /// Keeping this scope provider-agnostic lets individual feature screen tests
@@ -47,6 +49,14 @@ class MvpScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final banner = MvpScaffoldBannerScope.maybeOf(context);
+    final size = MediaQuery.sizeOf(context);
+    final showRail = size.width >= AppBreakpoints.tablet && size.height >= 480;
+    final content = banner == null
+        ? child
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [banner, Expanded(child: child)],
+          );
     final destinations = const [
       NavigationDestination(
           icon: Icon(Icons.home_outlined),
@@ -82,15 +92,29 @@ class MvpScaffold extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: banner == null
-            ? child
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: showRail
+            ? Row(
                 children: [
-                  banner,
-                  Expanded(child: child),
+                  NavigationRail(
+                    selectedIndex: selectedIndex,
+                    labelType: NavigationRailLabelType.all,
+                    groupAlignment: -1,
+                    onDestinationSelected: (index) =>
+                        _navigateToDestination(context, index),
+                    destinations: [
+                      for (final destination in destinations)
+                        NavigationRailDestination(
+                          icon: destination.icon,
+                          selectedIcon: destination.selectedIcon,
+                          label: Text(destination.label),
+                        ),
+                    ],
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(child: content),
                 ],
-              ),
+              )
+            : content,
       ),
       floatingActionButton: showQuickAdd
           ? FloatingActionButton(
@@ -99,27 +123,29 @@ class MvpScaffold extends StatelessWidget {
               child: const Icon(Icons.add),
             )
           : null,
-      bottomNavigationBar: NavigationBar(
-        height: _navigationBarHeight(context),
-        selectedIndex: selectedIndex,
-        destinations: destinations,
-        onDestinationSelected: (index) async {
-          switch (index) {
-            case 0:
-              await _navigate(context, '/');
-            case 1:
-              await _navigate(context, '/timetable');
-            case 2:
-              await _navigate(context, '/assignments');
-            case 3:
-              await _navigate(context, '/calendar');
-            case 4:
-              await _navigate(context, '/shared');
-          }
-        },
-      ),
+      bottomNavigationBar: showRail
+          ? null
+          : NavigationBar(
+              height: _navigationBarHeight(context),
+              selectedIndex: selectedIndex,
+              destinations: destinations,
+              onDestinationSelected: (index) =>
+                  _navigateToDestination(context, index),
+            ),
     );
   }
+
+  Future<void> _navigateToDestination(
+          BuildContext context, int index) =>
+      _navigate(
+          context,
+          const [
+            '/',
+            '/timetable',
+            '/assignments',
+            '/calendar',
+            '/shared'
+          ][index]);
 
   double _navigationBarHeight(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -135,6 +161,12 @@ class MvpScaffold extends StatelessWidget {
       context: pageContext,
       showDragHandle: true,
       isScrollControlled: true,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(pageContext)
+          ? AnimationStyle.noAnimation
+          : const AnimationStyle(
+              duration: AppMotion.standard,
+              reverseDuration: AppMotion.quick,
+            ),
       builder: (sheetContext) {
         return SafeArea(
           child: ListView(

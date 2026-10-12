@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Portfolio v0.5 design tokens shared by production screens.
+/// Academic design tokens shared by production screens.
 ///
 /// Layout values follow an 8 dp grid with 4 dp available for compact details.
 /// Interactive controls should use [AppSizes.minimumTouchTarget] or a Material
@@ -49,6 +49,9 @@ abstract final class AppMotion {
   static const Duration quick = Duration(milliseconds: 120);
   static const Duration standard = Duration(milliseconds: 220);
   static const Duration emphasized = Duration(milliseconds: 320);
+
+  static Duration forContext(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }
 
 @immutable

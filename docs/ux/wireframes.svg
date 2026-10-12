@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2880" height="1360" viewBox="0 0 2880 1360" role="img" aria-labelledby="title desc">
+  <title id="title">UniSchedule v1.1 synthetic before and proposed wireframes</title>
+  <desc id="desc">Editable generic wireframes for Today, Timetable, and Assignments/Exams. Before panels are schematic source-level representations. Proposal panels show research-informed 2D UX concepts.</desc>
+  <defs>
+    <style>
+      text { font-family: "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif; fill: #182230; }
+      .h { font-size: 30px; font-weight: 700; }
+      .sub { font-size: 20px; font-weight: 600; }
+      .body { font-size: 18px; }
+      .small { font-size: 15px; }
+      .tiny { font-size: 12px; }
+      .label { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+      .muted { fill: #536171; }
+      .white { fill: #fff; }
+      .blue { fill: #175cd3; }
+      .green { fill: #067647; }
+      .orange { fill: #b54708; }
+      .red { fill: #b42318; }
+      .purple { fill: #6941c6; }
+      .line { stroke: #d0d5dd; stroke-width: 2; }
+    </style>
+  </defs>
+  <rect width="2880" height="1360" fill="#f2f4f7"/>
+  <text x="56" y="62" class="h">UniSchedule · v1.1 UX proposals</text>
+  <text x="56" y="98" class="body muted">Synthetic wireframes · before = schematic of current source · after = proposal, not shipped UI · all schedule data is fictitious</text>
+
+  <!-- Section backgrounds and titles -->
+  <g transform="translate(40,128)">
+    <rect width="910" height="1188" rx="24" fill="#fff" stroke="#d0d5dd" stroke-width="2"/>
+    <text x="28" y="48" class="h">01 · Today</text>
+    <text x="28" y="78" class="small muted">First-use summary + full agenda beneath</text>
+  </g>
+  <g transform="translate(985,128)">
+    <rect width="910" height="1188" rx="24" fill="#fff" stroke="#d0d5dd" stroke-width="2"/>
+    <text x="28" y="48" class="h">02 · Timetable</text>
+    <text x="28" y="78" class="small muted">Readable week scan + selected-course detail</text>
+  </g>
+  <g transform="translate(1930,128)">
+    <rect width="910" height="1188" rx="24" fill="#fff" stroke="#d0d5dd" stroke-width="2"/>
+    <text x="28" y="48" class="h">03 · Assignments / exams</text>
+    <text x="28" y="78" class="small muted">Visible mode switch + recoverable submission</text>
+  </g>
+
+  <!-- Today before phone -->
+  <g transform="translate(78,244)">
+    <text x="12" y="0" class="label muted">BEFORE · SOURCE SCHEMATIC</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#667085" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="26" y="66" class="h">今日</text><text x="320" y="65" class="sub">◉</text>
+    <text x="24" y="130" class="sub">2026年10月12日</text>
+    <text x="24" y="159" class="small muted">端末の個人予定・接続時のグループ予定</text>
+    <rect x="20" y="182" width="332" height="130" rx="16" fill="#fff8ed" stroke="#f3c18c" stroke-width="2"/>
+    <text x="40" y="216" class="sub orange">締切</text>
+    <text x="40" y="250" class="body">データ分析レポート</text>
+    <text x="40" y="278" class="small muted">本日 23:59 · 統計学</text>
+    <text x="40" y="301" class="tiny muted">提出済みにする</text>
+    <text x="24" y="354" class="sub">今日の授業</text>
+    <rect x="20" y="369" width="332" height="98" rx="14" fill="#eff8ff" stroke="#b2ddff" stroke-width="2"/>
+    <text x="38" y="402" class="body">統計学</text><text x="38" y="433" class="small muted">10:40–12:10 · C-201</text>
+    <text x="24" y="510" class="sub">今日のテスト</text><text x="24" y="541" class="small muted">今日のテストはありません</text>
+    <text x="24" y="590" class="sub">個人予定</text><text x="24" y="621" class="small muted">今日の個人予定はありません</text>
+    <text x="24" y="670" class="sub">共有予定</text><text x="24" y="701" class="small muted">共有予定カード…</text>
+    <text x="24" y="750" class="sub">ルーティン</text><text x="24" y="781" class="small muted">今日のルーティンはありません</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/>
+    <text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+
+  <!-- Today proposal -->
+  <g transform="translate(508,244)">
+    <text x="12" y="0" class="label blue">V1.1 · PROPOSAL</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#175cd3" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="26" y="66" class="h">今日</text><text x="320" y="65" class="sub">◉</text>
+    <text x="24" y="130" class="sub">月曜日 · 10月12日</text>
+    <rect x="20" y="151" width="332" height="186" rx="18" fill="#eff8ff" stroke="#84caff" stroke-width="2"/>
+    <text x="40" y="184" class="small blue">次の授業 · 2限</text>
+    <text x="40" y="222" class="h">統計学</text>
+    <text x="40" y="254" class="body">10:40–12:10 · C-201</text>
+    <text x="40" y="299" class="small blue">授業の詳細 →</text>
+    <rect x="20" y="353" width="158" height="92" rx="16" fill="#fff8ed" stroke="#f3c18c" stroke-width="2"/>
+    <text x="38" y="385" class="small orange">今日の締切</text><text x="38" y="423" class="h">2 件</text>
+    <rect x="194" y="353" width="158" height="92" rx="16" fill="#f4f3ff" stroke="#c3b5fd" stroke-width="2"/>
+    <text x="212" y="385" class="small purple">今日のテスト</text><text x="212" y="423" class="h">1 件</text>
+    <text x="24" y="487" class="sub">先に対応</text>
+    <rect x="20" y="502" width="332" height="90" rx="14" fill="#fff" stroke="#eaecf0" stroke-width="2"/>
+    <text x="38" y="535" class="body">レポートを提出</text><text x="38" y="563" class="small muted">期限超過 · 統計学</text>
+    <rect x="232" y="519" width="104" height="52" rx="13" fill="#175cd3"/><text x="249" y="552" class="small white">提出済み</text>
+    <text x="24" y="632" class="sub">今日の予定</text>
+    <text x="24" y="666" class="small">2限 統計学　10:40–12:10</text>
+    <text x="24" y="696" class="small">15:00 ゼミ　研究棟</text>
+    <text x="24" y="733" class="small muted">授業・個人・共有・ルーティンを続けて確認</text>
+    <text x="24" y="779" class="small blue">予定をすべて見る →</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/>
+    <text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+
+  <!-- Timetable before -->
+  <g transform="translate(1023,244)">
+    <text x="12" y="0" class="label muted">BEFORE · SOURCE SCHEMATIC</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#667085" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="26" y="66" class="h">時間割</text><text x="320" y="65" class="sub">⚙</text>
+    <rect x="20" y="120" width="332" height="48" rx="14" fill="#f2f4f7"/><rect x="24" y="124" width="146" height="40" rx="11" fill="#fff" stroke="#d0d5dd"/><text x="66" y="151" class="small">日ごと</text><text x="221" y="151" class="small muted">週全体</text>
+    <text x="24" y="210" class="small">月　火　水　木　金</text>
+    <text x="24" y="265" class="small muted">1限</text><text x="83" y="265" class="tiny">アルゴ…</text><text x="139" y="265" class="tiny">英語</text><text x="198" y="265" class="tiny">—</text><text x="246" y="265" class="tiny">経済…</text><text x="310" y="265" class="tiny">—</text>
+    <rect x="20" y="229" width="332" height="112" rx="12" fill="#f9fafb" stroke="#eaecf0"/>
+    <text x="24" y="390" class="small muted">2限</text><text x="83" y="390" class="tiny">統計…</text><text x="139" y="390" class="tiny">—</text><text x="198" y="390" class="tiny">生物…</text><text x="246" y="390" class="tiny">—</text><text x="310" y="390" class="tiny">—</text>
+    <rect x="20" y="354" width="332" height="112" rx="12" fill="#eff8ff" stroke="#b2ddff"/>
+    <text x="24" y="514" class="small muted">3限</text><text x="83" y="514" class="tiny">—</text><text x="139" y="514" class="tiny">演習…</text><text x="198" y="514" class="tiny">—</text><text x="246" y="514" class="tiny">—</text><text x="310" y="514" class="tiny">—</text>
+    <rect x="20" y="478" width="332" height="112" rx="12" fill="#f9fafb" stroke="#eaecf0"/>
+    <text x="24" y="634" class="small muted">4限</text><text x="83" y="634" class="tiny">—</text><text x="139" y="634" class="tiny">—</text><text x="198" y="634" class="tiny">—</text><text x="246" y="634" class="tiny">—</text><text x="310" y="634" class="tiny">—</text>
+    <rect x="20" y="598" width="332" height="112" rx="12" fill="#f9fafb" stroke="#eaecf0"/>
+    <text x="24" y="758" class="small muted">5限</text><text x="83" y="758" class="tiny">—</text><text x="139" y="758" class="tiny">—</text><text x="198" y="758" class="tiny">—</text><text x="246" y="758" class="tiny">—</text><text x="310" y="758" class="tiny">—</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/><text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+
+  <!-- Timetable proposal -->
+  <g transform="translate(1453,244)">
+    <text x="12" y="0" class="label blue">V1.1 · PROPOSAL</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#175cd3" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="26" y="66" class="h">時間割</text><text x="320" y="65" class="sub">⚙</text>
+    <rect x="20" y="120" width="332" height="48" rx="14" fill="#f2f4f7"/><text x="72" y="151" class="small muted">日ごと</text><rect x="186" y="124" width="162" height="40" rx="11" fill="#fff" stroke="#84caff" stroke-width="2"/><text x="231" y="151" class="small blue">週全体</text>
+    <text x="35" y="207" class="small">月</text><text x="97" y="207" class="small">火</text><text x="159" y="207" class="small">水</text><text x="221" y="207" class="small">木</text><text x="283" y="207" class="small">金</text>
+    <text x="20" y="260" class="small muted">1限</text>
+    <rect x="58" y="222" width="55" height="90" rx="10" fill="#eff8ff"/><text x="64" y="253" class="tiny">アルゴ</text><text x="64" y="278" class="tiny">10:00</text>
+    <rect x="120" y="222" width="55" height="90" rx="10" fill="#f4f3ff"/><text x="132" y="253" class="tiny">英語</text>
+    <rect x="182" y="222" width="55" height="90" rx="10" fill="#f9fafb" stroke="#eaecf0"/><text x="197" y="267" class="tiny muted">＋</text>
+    <rect x="244" y="222" width="55" height="90" rx="10" fill="#ecfdf3"/><text x="252" y="253" class="tiny">経済学</text>
+    <rect x="306" y="222" width="55" height="90" rx="10" fill="#f9fafb" stroke="#eaecf0"/><text x="321" y="267" class="tiny muted">＋</text>
+    <text x="20" y="350" class="small muted">2限</text>
+    <rect x="58" y="322" width="55" height="90" rx="10" fill="#eff8ff" stroke="#175cd3" stroke-width="4"/><text x="63" y="353" class="tiny">統計学</text><text x="64" y="379" class="tiny">選択中</text>
+    <rect x="120" y="322" width="55" height="90" rx="10" fill="#f9fafb" stroke="#eaecf0"/><text x="135" y="367" class="tiny muted">＋</text>
+    <rect x="182" y="322" width="55" height="90" rx="10" fill="#f4f3ff"/><text x="190" y="353" class="tiny">生物</text>
+    <rect x="244" y="322" width="55" height="90" rx="10" fill="#f9fafb" stroke="#eaecf0"/><text x="259" y="367" class="tiny muted">＋</text>
+    <rect x="306" y="322" width="55" height="90" rx="10" fill="#f9fafb" stroke="#eaecf0"/><text x="321" y="367" class="tiny muted">＋</text>
+    <text x="20" y="449" class="small muted">3–5限　…</text>
+    <rect x="12" y="470" width="348" height="344" rx="22" fill="#fff" stroke="#84caff" stroke-width="3"/>
+    <text x="34" y="512" class="small blue">選択中の授業 · 火曜 2限</text>
+    <text x="34" y="554" class="h">統計学</text>
+    <text x="34" y="592" class="body">10:40–12:10</text>
+    <text x="34" y="625" class="body">講義棟 C-201</text>
+    <text x="34" y="665" class="small muted">公開範囲: 自分のみ</text>
+    <line x1="34" y1="686" x2="336" y2="686" class="line"/>
+    <rect x="28" y="714" width="142" height="62" rx="14" fill="#fff" stroke="#98a2b3" stroke-width="2"/><text x="54" y="752" class="small">詳細を見る</text>
+    <rect x="184" y="714" width="142" height="62" rx="14" fill="#175cd3"/><text x="228" y="752" class="small white">編集</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/><text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+
+  <!-- Assignment before -->
+  <g transform="translate(1968,244)">
+    <text x="12" y="0" class="label muted">BEFORE · SOURCE SCHEMATIC</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#667085" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="22" y="66" class="sub">課題・テスト</text><text x="322" y="64" class="sub">＋</text>
+    <rect x="18" y="120" width="70" height="46" rx="22" fill="#dbeafe"/><text x="32" y="149" class="tiny">未提出</text>
+    <rect x="93" y="120" width="66" height="46" rx="22" fill="#f2f4f7"/><text x="107" y="149" class="tiny">今日</text>
+    <rect x="164" y="120" width="66" height="46" rx="22" fill="#f2f4f7"/><text x="177" y="149" class="tiny">今週</text>
+    <rect x="235" y="120" width="72" height="46" rx="22" fill="#f2f4f7"/><text x="247" y="149" class="tiny">提出済み</text>
+    <text x="20" y="197" class="small">授業: すべて ▾</text>
+    <text x="20" y="246" class="sub">期限切れ 1</text>
+    <rect x="18" y="262" width="336" height="172" rx="15" fill="#fff" stroke="#eaecf0" stroke-width="2"/>
+    <text x="36" y="299" class="body">データ分析レポート</text><text x="36" y="329" class="small muted">統計学 · 10/11 23:59</text><text x="36" y="359" class="small red">期限切れ</text>
+    <rect x="206" y="372" width="130" height="48" rx="12" fill="#fff" stroke="#98a2b3"/><text x="222" y="402" class="tiny">提出済みにする</text>
+    <text x="20" y="487" class="sub">今週 2</text>
+    <rect x="18" y="503" width="336" height="128" rx="15" fill="#fff" stroke="#eaecf0" stroke-width="2"/>
+    <text x="36" y="540" class="body">小レポート</text><text x="36" y="570" class="small muted">社会学 · 10/15 17:00</text><text x="36" y="604" class="tiny">状態: 進行中</text>
+    <text x="20" y="682" class="sub">テスト</text><text x="20" y="714" class="small muted">登録されたテストはありません。</text>
+    <rect x="24" y="750" width="324" height="54" rx="16" fill="#175cd3"/><text x="119" y="784" class="small white">＋ 追加</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/><text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+
+  <!-- Assignment proposal -->
+  <g transform="translate(2398,244)">
+    <text x="12" y="0" class="label blue">V1.1 · PROPOSAL</text>
+    <rect x="0" y="20" width="372" height="900" rx="38" fill="#fff" stroke="#175cd3" stroke-width="4"/>
+    <rect x="0" y="20" width="372" height="76" rx="34" fill="#f9fafb"/>
+    <text x="22" y="66" class="sub">課題・テスト</text><text x="322" y="64" class="sub">＋</text>
+    <rect x="18" y="116" width="336" height="54" rx="16" fill="#f2f4f7"/>
+    <rect x="22" y="120" width="194" height="46" rx="13" fill="#fff" stroke="#84caff" stroke-width="2"/>
+    <text x="43" y="150" class="small blue">課題 4</text><text x="132" y="150" class="small">テスト 2</text>
+    <rect x="18" y="184" width="82" height="42" rx="21" fill="#dbeafe"/><text x="35" y="211" class="tiny">未提出</text>
+    <text x="20" y="260" class="sub">期限超過 · 1件</text>
+    <rect x="18" y="275" width="336" height="170" rx="15" fill="#fff" stroke="#eaecf0" stroke-width="2"/>
+    <text x="36" y="311" class="body">データ分析レポート</text><text x="36" y="341" class="small muted">統計学 · 10/11 23:59</text>
+    <rect x="36" y="366" width="105" height="34" rx="17" fill="#fee4e2"/><text x="53" y="389" class="tiny red">期限超過</text>
+    <rect x="205" y="382" width="132" height="48" rx="12" fill="#175cd3"/><text x="224" y="412" class="tiny white">提出済みにする</text>
+    <text x="20" y="495" class="sub">今週 · 2件</text>
+    <rect x="18" y="510" width="336" height="126" rx="15" fill="#fff" stroke="#eaecf0" stroke-width="2"/>
+    <text x="36" y="547" class="body">小レポート</text><text x="36" y="578" class="small muted">社会学 · 10/15 17:00</text><text x="36" y="611" class="small">進行中</text>
+    <rect x="18" y="654" width="336" height="58" rx="14" fill="#ecfdf3" stroke="#abefc6" stroke-width="2"/><text x="36" y="690" class="small green">「データ分析レポート」を提出済みにしました</text>
+    <text x="36" y="738" class="small blue">元に戻す</text>
+    <text x="20" y="784" class="small muted">状態は一覧にも保存されます</text>
+    <line x1="0" y1="842" x2="372" y2="842" class="line"/><text x="24" y="878" class="tiny">ホーム　時間割　課題・テスト　カレンダー　共有</text>
+  </g>
+</svg>

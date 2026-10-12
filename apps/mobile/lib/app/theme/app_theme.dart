@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'app_tokens.dart';
@@ -9,6 +10,14 @@ class AppTheme {
       seedColor: const Color(0xFF175CD3),
       brightness: Brightness.light,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    ).copyWith(
+      surface: const Color(0xFFFFFFFF),
+      surfaceContainerLowest: const Color(0xFFFFFFFF),
+      surfaceContainerLow: const Color(0xFFF8F9FB),
+      surfaceContainer: const Color(0xFFF0F3F7),
+      surfaceContainerHigh: const Color(0xFFE8EDF3),
+      surfaceContainerHighest: const Color(0xFFDDE5EE),
+      outlineVariant: const Color(0xFFD7DFEA),
     );
     return _base(scheme, const AppSemanticColors.light());
   }
@@ -18,6 +27,14 @@ class AppTheme {
       seedColor: const Color(0xFFAAC7FF),
       brightness: Brightness.dark,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    ).copyWith(
+      surface: const Color(0xFF11161D),
+      surfaceContainerLowest: const Color(0xFF0C1117),
+      surfaceContainerLow: const Color(0xFF191F27),
+      surfaceContainer: const Color(0xFF202731),
+      surfaceContainerHigh: const Color(0xFF29313C),
+      surfaceContainerHighest: const Color(0xFF333D49),
+      outlineVariant: const Color(0xFF414D5D),
     );
     return _base(scheme, const AppSemanticColors.dark());
   }
@@ -110,6 +127,16 @@ class AppTheme {
       textTheme: textTheme,
       visualDensity: VisualDensity.standard,
       materialTapTargetSize: MaterialTapTargetSize.padded,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AccessiblePageTransitionsBuilder(),
+          TargetPlatform.iOS: AccessiblePageTransitionsBuilder(),
+          TargetPlatform.macOS: AccessiblePageTransitionsBuilder(),
+          TargetPlatform.windows: AccessiblePageTransitionsBuilder(),
+          TargetPlatform.linux: AccessiblePageTransitionsBuilder(),
+          TargetPlatform.fuchsia: AccessiblePageTransitionsBuilder(),
+        },
+      ),
       scaffoldBackgroundColor: scheme.surface,
       focusColor: scheme.primary.withValues(alpha: 0.16),
       extensions: <ThemeExtension<dynamic>>[semanticColors],
@@ -230,6 +257,16 @@ class AppTheme {
         indicatorColor: scheme.secondaryContainer,
         labelTextStyle: WidgetStatePropertyAll(textTheme.labelMedium),
       ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: scheme.surface,
+        indicatorColor: scheme.secondaryContainer,
+        selectedLabelTextStyle: textTheme.labelLarge?.copyWith(
+          color: scheme.onSurface,
+        ),
+        unselectedLabelTextStyle: textTheme.labelLarge?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
         minTileHeight: AppSizes.minimumTouchTarget,
@@ -273,6 +310,34 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(AppRadii.large)),
         ),
       ),
+    );
+  }
+}
+
+/// Keep native-style transitions unless the OS requests reduced motion.
+class AccessiblePageTransitionsBuilder extends PageTransitionsBuilder {
+  const AccessiblePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    final platform = Theme.of(context).platform;
+    final delegate =
+        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS
+            ? const CupertinoPageTransitionsBuilder()
+            : const ZoomPageTransitionsBuilder();
+    return delegate.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      child,
     );
   }
 }
