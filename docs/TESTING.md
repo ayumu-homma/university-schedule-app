@@ -9,7 +9,7 @@
 - PASS：Flutter 3.44.4 / Dart 3.12.2、lockfile準拠の依存取得、Drift生成、format、fatal infos/warningsを有効にした全体analyze。
 - PASS：通常Flutter unit/widgetは135ファイル、811成功・3スキップ。保持DBのschema18 fixtureを必要とする2ケースと、過去の保存領域snapshotを必要とする1ケースは、fixture非配布のため既存の条件どおりskip。24件の接続fixtureファイルは別スイートとしてソースを維持。
 - PASS：shared_domainは91成功、format/analyze、lockfile準拠の依存取得。
-- PASS：管理画面のnpm ci、lint、既存Nodeテスト10件、Next.js build。WindowsローカルはNode24.15.0、CIはNode22。
+- PASS：管理画面のnpm ci、lint、Next.js build、既存6ファイルの14テスト（13 unit + 1合成HTTP）。HTTPは専用loopbackサーバーに架空の公開文面を渡して検証し、プロセスを終了します。WindowsローカルはNode24.15.0、CIはNode22。
 - PASS：Deno2.9.7によるEdge format/lint/checkと168テスト。実サービス接続の成功ではありません。
 - PASS：配備ガード・migration計画・資料AI smoke入口・物理Android入口の契約テスト。実配備・実AI・実機の成功ではありません。
 - PASS：Android local/demo APK（1.0.0+1）を生成。JVM/Robolectric68件成功・failure/error/skip0。新規専用API36 AVDにインストールし、合成Auth、Home/Today、時間割の日/週表示、課題、提出済みを記録する導線、再起動後の表示を確認。物理端末や接続E2Eとは別です。
@@ -52,8 +52,8 @@ Set-Location android
 Set-Location ../../admin
 npm ci
 npm run lint
-node --test test/*.test.mjs
 npm run build
+node scripts/run-local-tests.mjs
 npm audit --omit=dev --audit-level=high
 npm audit --audit-level=high
 ```

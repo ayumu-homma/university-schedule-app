@@ -131,12 +131,12 @@ jobs:
       - name: Admin lint
         working-directory: apps/admin
         run: npm run lint
-      - name: Existing admin tests
-        working-directory: apps/admin
-        run: node --test test/*.test.mjs
       - name: Admin build
         working-directory: apps/admin
         run: npm run build
+      - name: All existing admin unit and synthetic HTTP tests
+        working-directory: apps/admin
+        run: node scripts/run-local-tests.mjs
 
   admin-dependency-audit:
     runs-on: ubuntu-latest
@@ -246,6 +246,12 @@ jobs:
           fi
       - name: Public source inventory and relative links
         run: python3 scripts/verify_public_source.py
+      - name: Sharing and notification source contracts
+        run: |
+          python3 scripts/test_friend_schedule_block_source_contract.py
+          python3 scripts/test_group_availability_nonmember_source_contract.py
+          python3 scripts/test_notification_blocking_source_contract.py
+          node scripts/test_group_comment_report_log_privacy.mjs
       - name: GitHub Actions syntax
         run: >-
           docker run --rm

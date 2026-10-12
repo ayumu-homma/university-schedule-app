@@ -33,8 +33,8 @@ try {
     Set-Location ../admin
     Run npm.cmd @('ci')
     Run npm.cmd @('run','lint')
-    Run node @('--test','test/account-deletion-url.test.mjs','test/account-deletion-contract.test.mjs','test/account-deletion-build-config.test.mjs','test/supabase-account-deletion-config.test.mjs')
     Run npm.cmd @('run','build')
+    Run node @('scripts/run-local-tests.mjs')
     Run npm.cmd @('audit','--audit-level=high')
     Write-Host 'PASS: selected local commands. SQL/Edge/device checks are separate; see docs/TESTING.md.'
 } finally { Pop-Location }

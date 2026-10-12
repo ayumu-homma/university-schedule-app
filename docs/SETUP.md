@@ -60,8 +60,8 @@ flutter run -d <device-id> --flavor staging `
 Set-Location apps/admin
 npm ci
 npm run lint
-node --test test/*.test.mjs
 npm run build
+node scripts/run-local-tests.mjs
 npm run dev -- --hostname 127.0.0.1
 ```
 
